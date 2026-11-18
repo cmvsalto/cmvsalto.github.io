@@ -1,0 +1,1128 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="icon-32.png">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#241e19">
+<title>CMV Salto das Nuvens</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800&family=DM+Sans:opsz,wght@9..40,400..800&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+/* Salto, versão "caderno de custos": paleta e letras da Carta, mas lateral clara (papel), dourado como cor de ação, blocos de número em terra e cantos levemente arredondados. */
+:root{
+  --bg:#f4ead8; --surface:#fff5e5; --ink:#382118; --muted:#5f4937; --line:#dcc8a6;
+  --side:#fbf1df; --terra:#241e19; --terra-2:#35261d; --on-terra:#fff5e5;
+  --accent:#a9442c; --accent-ink:#fff5e5; --accent-soft:#f3e2c9; --accent-text:#8c362a;
+  --sand:#e6a43d; --sand-ink:#241e19; --gold-text:#e6a43d; --cell:#f8eedd;
+  --good:#3d6b35; --good-soft:#e2ebd3; --warn:#8a5600; --warn-soft:#f8e2b8; --bad:#b3261e; --bad-soft:#f6d9d2;
+  --font-display:"Barlow Condensed", "Arial Narrow", system-ui, sans-serif;
+  --font-body:"DM Sans", "Segoe UI", system-ui, sans-serif;
+  --font-num:"IBM Plex Mono", ui-monospace, monospace;
+  --r:6px; color-scheme:light;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#171714; --surface:#29241f; --ink:#f5e9d7; --muted:#d2bea3; --line:#45392e;
+  --side:#211d19; --terra:#0f0d0b; --terra-2:#272420; --on-terra:#f5e9d7;
+  --accent:#a3472c; --accent-ink:#f5e9d7; --accent-soft:#352b23; --accent-text:#f4b276;
+  --sand:#efb24f; --sand-ink:#1b1815; --gold-text:#efb24f; --cell:#2f2924;
+  --good:#9ccf86; --good-soft:#26331f; --warn:#efb24f; --warn-soft:#3a2d17; --bad:#ff8f7a; --bad-soft:#3d1d17; color-scheme:dark;}}
+:root[data-theme="dark"]{
+  --bg:#171714; --surface:#29241f; --ink:#f5e9d7; --muted:#d2bea3; --line:#45392e;
+  --side:#211d19; --terra:#0f0d0b; --terra-2:#272420; --on-terra:#f5e9d7;
+  --accent:#a3472c; --accent-ink:#f5e9d7; --accent-soft:#352b23; --accent-text:#f4b276;
+  --sand:#efb24f; --sand-ink:#1b1815; --gold-text:#efb24f; --cell:#2f2924;
+  --good:#9ccf86; --good-soft:#26331f; --warn:#efb24f; --warn-soft:#3a2d17; --bad:#ff8f7a; --bad-soft:#3d1d17; color-scheme:dark;}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--ink);font:15px/1.5 var(--font-body)}
+h1,h2,h3{font-family:var(--font-display);font-weight:800;text-transform:uppercase;text-wrap:balance;margin:0;line-height:.98}
+h1{font-size:clamp(32px,3.6vw,46px)} h2{font-size:26px} h3{font-size:20px}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--sand);outline-offset:2px}
+.num,td.n,th.n{font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
+td.n,.sum .row span:last-child{font-family:var(--font-num);font-size:13.5px}
+.muted{color:var(--muted)} .small{font-size:13px}
+.hidden{display:none!important}
+.eyebrow{font-size:12px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--accent-text)}
+a{color:var(--accent-text);font-weight:700}
+*{scrollbar-width:thin;scrollbar-color:var(--sand) transparent}
+::-webkit-scrollbar{width:10px;height:10px} ::-webkit-scrollbar-thumb{background:var(--sand);border-radius:6px} ::-webkit-scrollbar-track{background:transparent}
+
+/* login */
+#login{min-height:100%;display:grid;place-items:center;padding:24px;background:var(--bg)}
+.login-card{width:min(400px,100%);background:var(--surface);border:2px solid var(--terra);border-radius:10px;box-shadow:6px 6px 0 var(--sand);padding:0 0 26px;display:grid;gap:16px;overflow:hidden}
+.login-card>*:not(.login-head){margin:0 26px}
+.login-head{background:var(--terra);padding:22px 26px 18px;display:grid;gap:8px;border-bottom:5px solid var(--sand)}
+.login-head img{width:100%;max-width:280px;height:auto;display:block}
+.login-head .eyebrow{color:var(--gold-text)}
+.login-card label{display:grid;gap:6px;font-weight:700;font-size:14px}
+.err{color:var(--bad);font-size:14px;min-height:20px;font-weight:600}
+
+/* shell: lateral clara */
+#app{display:grid;grid-template-columns:240px minmax(0,1fr);height:100%}
+nav,main{min-width:0}
+nav{background:var(--side);border-right:2px solid var(--terra);display:flex;flex-direction:column;overflow:auto}
+nav .brand{background:var(--terra);padding:18px 16px 14px;display:grid;gap:6px;border-bottom:5px solid var(--sand)}
+nav .brand img{width:100%;max-width:196px;height:auto;display:block}
+nav .brand .eyebrow{color:var(--gold-text);font-size:12px}
+nav .links{padding:6px 10px;display:flex;flex-direction:column;gap:2px}
+nav .sec{font-size:11px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--accent-text);padding:14px 10px 4px}
+nav button{all:unset;cursor:pointer;padding:8px 10px;font-weight:700;font-size:14px;display:flex;justify-content:space-between;align-items:center;gap:8px;border-radius:6px;color:var(--ink)}
+nav button:hover{background:var(--accent-soft)}
+nav button.on{background:var(--sand);color:var(--sand-ink);box-shadow:inset 4px 0 0 var(--accent)}
+nav button:focus-visible{outline:3px solid var(--accent)}
+nav .count{font-size:11px;font-family:var(--font-num);border:1px solid currentColor;border-radius:99px;padding:0 6px;opacity:.75}
+nav .foot{margin-top:auto;padding:12px 16px 16px;border-top:1px dashed var(--line);font-size:13px;display:grid;gap:8px}
+main{overflow:auto;padding:26px clamp(16px,3vw,40px) 60px}
+.head{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;justify-content:space-between;margin-bottom:20px;padding-bottom:14px;border-bottom:2px dashed var(--line)}
+.head p{margin:6px 0 0;color:var(--muted);max-width:70ch}
+.tools{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+
+.btn{border:2px solid var(--terra);background:var(--surface);color:var(--ink);padding:7px 14px;border-radius:6px;cursor:pointer;font-weight:700;white-space:nowrap;min-height:38px}
+:root[data-theme="dark"] .btn{border-color:var(--line)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .btn{border-color:var(--line)}}
+.btn:hover{background:var(--accent-soft)}
+.btn.pri{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.btn.pri:hover{filter:brightness(1.08)}
+.btn.ai{border-color:var(--sand)}
+.btn.ai.pri{background:var(--sand);color:var(--sand-ink);border-color:var(--sand);box-shadow:3px 3px 0 var(--terra)}
+:root[data-theme="dark"] .btn.ai.pri{box-shadow:3px 3px 0 var(--accent)}
+.btn.danger{color:var(--bad);border-color:var(--bad)}
+.btn.sm{padding:2px 9px;font-size:13px;min-height:28px;border-width:1.5px}
+.btn:disabled{opacity:.55;cursor:wait}
+input.f,select.f,textarea.f{border:1.5px solid var(--line);background:var(--cell);padding:8px 10px;width:100%;min-width:0;border-radius:6px}
+input.f:focus,select.f:focus,textarea.f:focus{border-color:var(--accent);outline:none;background:var(--surface)}
+input.cell{border:1px solid transparent;background:transparent;padding:4px 6px;width:100%;text-align:right;font-variant-numeric:tabular-nums;border-radius:4px;font-family:var(--font-num);font-size:13.5px}
+input.cell.l{text-align:left;font-family:var(--font-body);font-size:14px}
+select.cell{border:1px solid var(--line);background:var(--surface);padding:3px 4px;text-align:left;border-radius:4px}
+input.cell:hover{border-color:var(--line)} input.cell:focus{border-color:var(--accent);background:var(--surface);outline:none}
+.search{max-width:280px}
+
+.card{background:var(--surface);border:1.5px solid var(--line);border-top:5px solid var(--sand);border-radius:var(--r);padding:18px}
+.card h3{color:var(--accent-text)}
+.grid{display:grid;gap:14px;align-content:start}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(178px,1fr));gap:12px;margin-bottom:22px}
+.kpi{background:var(--terra);color:var(--on-terra);border-radius:var(--r);padding:13px 15px;border-bottom:4px solid var(--sand)}
+.kpi .v{font-family:var(--font-num);font-size:23px;font-weight:600;font-variant-numeric:tabular-nums;line-height:1.15;margin-top:4px;color:var(--gold-text)}
+.kpi .l{font-size:11.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;opacity:.85}
+.kpi .s{font-size:12px;opacity:.75}
+.two{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:18px}
+
+.tablewrap{overflow-x:auto;background:var(--surface);border:1.5px solid var(--line);border-radius:var(--r)}
+.card .tablewrap{border:0}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th{font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);font-weight:800;text-align:left;padding:10px;border-bottom:2px solid var(--terra);background:var(--surface);position:sticky;top:0;white-space:nowrap}
+:root[data-theme="dark"] th{border-bottom-color:var(--line)}
+th.sort{cursor:pointer} th.sort:hover{color:var(--accent-text)}
+td{padding:6px 10px;border-bottom:1px solid var(--line);vertical-align:middle}
+tbody tr:nth-child(even){background:var(--cell)}
+tr:last-child td{border-bottom:0}
+tbody tr:hover{background:var(--accent-soft)}
+tr.click{cursor:pointer}
+tr.hl td{background:color-mix(in srgb,var(--sand) 35%,transparent)}
+tfoot td{font-weight:800;border-top:2px solid var(--terra)}
+
+.pill{display:inline-block;padding:1px 8px;border-radius:4px;font-size:11px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;white-space:nowrap}
+.pill.good{background:var(--good-soft);color:var(--good)} .pill.warn{background:var(--warn-soft);color:var(--warn)} .pill.bad{background:var(--bad-soft);color:var(--bad)} .pill.n{background:var(--accent-soft);color:var(--accent-text);font-family:var(--font-num);text-transform:none}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1.5px solid var(--line);background:var(--surface);border-radius:99px;padding:3px 12px;font-size:13px;font-weight:700;cursor:pointer}
+.chip.on{background:var(--terra);color:var(--on-terra);border-color:var(--terra)}
+
+/* ficha editor */
+.fgrid{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:20px;align-items:start}
+.form{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.form label{display:grid;gap:4px;font-size:12px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+.form label.wide{grid-column:1/-1}
+.sum{position:sticky;top:0;display:grid;gap:2px;background:var(--terra);color:var(--on-terra);border-color:var(--terra);border-top-color:var(--sand)}
+.sum h3{color:var(--gold-text)}
+.sum .row{display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px dashed rgba(255,245,229,.18);font-variant-numeric:tabular-nums}
+.sum .row.big{font-size:21px;font-weight:800;font-family:var(--font-display);text-transform:uppercase}
+.sum .row.big span:last-child{font-size:16px}
+.sum .muted{color:rgba(255,245,229,.72)}
+.sum .btn{background:transparent;color:var(--on-terra);border-color:var(--sand)}
+.sum .btn:hover{background:var(--terra-2)}
+.bar{height:10px;border-radius:3px;background:rgba(255,255,255,.15);overflow:hidden;display:flex;margin:10px 0 4px}
+.bar span{display:block;height:100%}
+.legend{display:flex;flex-wrap:wrap;gap:10px;font-size:12px;opacity:.85}
+.legend i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:4px;vertical-align:-1px}
+
+/* modal */
+.modal-bg{position:fixed;inset:0;background:rgba(27,24,21,.55);display:grid;place-items:center;padding:16px;z-index:20}
+.modal{background:var(--surface);border:2px solid var(--terra);border-top:6px solid var(--sand);border-radius:10px;box-shadow:0 20px 50px rgba(0,0,0,.3);width:min(640px,100%);max-height:calc(100% - 32px);overflow:auto;padding:22px;display:grid;gap:14px}
+.modal.wide{width:min(1000px,100%)}
+.modal .actions{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap}
+.modal .kpi{border-radius:6px}
+.sugg{border:1.5px solid var(--sand);border-radius:8px;padding:12px;background:color-mix(in srgb,var(--sand) 12%,var(--surface));display:grid;gap:6px}
+.toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:var(--terra);color:var(--on-terra);border-left:5px solid var(--sand);border-radius:6px;padding:10px 16px;z-index:30;font-size:14px;font-weight:600;max-width:90vw;display:flex;align-items:center;box-shadow:0 10px 30px rgba(0,0,0,.25)}
+.status{display:flex;align-items:center;gap:6px}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--good)}
+.dot.busy{background:var(--sand)} .dot.off{background:var(--bad)}
+
+@media (max-width:860px){
+  #app{grid-template-columns:minmax(0,1fr);grid-template-rows:auto 1fr}
+  nav{flex-direction:row;overflow-x:auto;border-right:0;border-bottom:2px solid var(--terra);align-items:stretch}
+  nav .brand{border-bottom:0;border-right:4px solid var(--sand);justify-content:center} nav .brand img{width:130px} nav .brand .eyebrow,nav .sec,nav .foot{display:none}
+  nav .links{flex-direction:row;align-items:center}
+  nav button{flex:none;min-height:44px}
+  .fgrid{grid-template-columns:1fr}
+  .sum{position:static}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+.sem-ia .btn.ai{display:none!important}
+</style>
+</head>
+<body>
+
+<section id="login">
+  <form class="login-card" id="loginForm" autocomplete="on">
+    <div class="login-head"><img src="logo.png" alt="Salto das Nuvens" width="280" height="42"><span class="eyebrow">Custos &amp; fichas técnicas</span></div>
+    <h2>Entrar</h2>
+    <label for="lu">Usuário<input class="f" id="lu" name="username" autocomplete="username" required></label>
+    <label for="lp">Senha<input class="f" id="lp" name="password" type="password" autocomplete="current-password" required></label>
+    <div class="err" id="lerr" role="alert"></div>
+    <button class="btn pri" type="submit">Entrar</button>
+  </form>
+</section>
+
+<div id="app" class="hidden">
+  <nav id="nav" aria-label="Módulos"></nav>
+  <main id="main" tabindex="-1"></main>
+</div>
+<div id="modalRoot"></div>
+
+<script>
+"use strict";
+/* ================= utilidades ================= */
+const $=(s,r=document)=>r.querySelector(s);
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const BRL=new Intl.NumberFormat("pt-BR",{style:"currency",currency:"BRL"});
+const brl=v=>isFinite(v)?BRL.format(v):"–";
+const pct=(v,d=1)=>isFinite(v)?(v*100).toLocaleString("pt-BR",{minimumFractionDigits:d,maximumFractionDigits:d})+"%":"–";
+const nf=(v,d=3)=>isFinite(v)?Number(v).toLocaleString("pt-BR",{minimumFractionDigits:0,maximumFractionDigits:d}):"–";
+const pnum=s=>{if(typeof s==="number")return s;s=String(s??"").trim().replace(/\s/g,"");if(!s)return 0;if(s.includes(",")){s=s.replace(/\./g,"").replace(",",".")}const v=parseFloat(s);return isFinite(v)?v:0};
+const norm=s=>String(s??"").normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase();
+const today=()=>new Date().toISOString().slice(0,10);
+const fmtDate=d=>d?d.split("-").reverse().join("/"):"–";
+function toast(msg,ms=2600,action){document.querySelectorAll(".toast").forEach(x=>x.remove());const t=document.createElement("div");t.className="toast";t.setAttribute("role","status");t.textContent=msg;
+  if(action){const b=document.createElement("button");b.className="btn sm";b.style.marginLeft="12px";b.textContent=action.label;b.onclick=()=>{t.remove();action.fn()};t.appendChild(b);ms=Math.max(ms,8000)}
+  document.body.appendChild(t);setTimeout(()=>t.remove(),ms)}
+
+/* ================= estado e persistência ================= */
+const NO_CLAUDE=typeof window.claude==="undefined";
+if(NO_CLAUDE)document.documentElement.classList.add("sem-ia");
+if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(()=>{});
+const LOGIN_HASH="d832442941eab6f0abd843d6d2505eacb06332520bb76b23c322e38a2cc7958b";
+let S={insumos:[],fichas:[],cfg:{}};
+let DB=null, saveMode="local";
+const DOCS={insumos:"cmv/insumos",fichas:"cmv/fichas",cfg:"cmv/config"};
+const pending={}, writing={};
+function lsGet(k){try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}}
+function lsSet(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
+function setStatus(state,text){const el=$("#saveStatus");if(!el)return;el.innerHTML=`<span class="dot ${state}"></span>${esc(text)}`}
+function save(key){
+  lsSet("cmv_"+key,S[key]);
+  if(!DB){setStatus("",NO_CLAUDE?"Salvo neste computador":"Salvo só neste navegador");return}
+  clearTimeout(pending[key]);setStatus("busy","Salvando…");
+  pending[key]=setTimeout(()=>flush(key),700);
+}
+async function flush(key){
+  if(writing[key]){pending[key]=setTimeout(()=>flush(key),400);return}
+  writing[key]=true;
+  try{
+    const body=key==="cfg"?{v:1,data:S.cfg}:{v:1,list:S[key]};
+    await DB.doc(DOCS[key]).set(body);
+    setStatus("","Salvo na nuvem");
+  }catch(e){
+    if(e&&e.code==="unavailable"){setTimeout(()=>flush(key),1500+Math.random()*1000)}
+    else{setStatus("off","Erro ao salvar: "+(e&&e.message||e))}
+  }finally{writing[key]=false}
+}
+async function loadAll(){
+  try{DB=await claude.use("db")}catch(e){DB=null}
+  let got={};
+  if(DB){
+    const timer=new Promise(r=>setTimeout(()=>r("timeout"),10000));
+    try{
+      const res=await Promise.race([Promise.all(Object.entries(DOCS).map(async([k,p])=>[k,await DB.doc(p).get()])),timer]);
+      if(res==="timeout"){DB=null;toast("Não consegui acessar o banco na nuvem; usando dados deste navegador.")}
+      else for(const [k,snap] of res){if(snap.exists){const d=JSON.parse(JSON.stringify(snap.data()));got[k]=k==="cfg"?d.data:d.list}}
+    }catch(e){DB=null}
+  }
+  if(!DB){for(const k of Object.keys(DOCS)){const v=lsGet("cmv_"+k);if(v)got[k]=v}}
+  if(!got.insumos||!got.fichas||!got.cfg){
+    if(NO_CLAUDE){await pedirBackupInicial();normalizeCfg();return}
+    await importarPlanilha(true,got);
+  }else{S.insumos=got.insumos;S.fichas=got.fichas;S.cfg=got.cfg}
+  normalizeCfg();
+}
+async function importarPlanilha(onlyMissing,got={}){
+  const r=await fetch("data.json");const d=await r.json();
+  const ins=d.insumos.map(i=>({...i,fonte:"planilha",atualizado:d.importadoEm}));
+  const cfg={custosFixos:d.custosFixos,varRef:d.varRef,varBeb:d.varBeb,faturamento:d.faturamento,lucroDesejado:d.lucroDesejado,
+    bebidas:d.bebidas,simulador:d.simulador,demanda:d.demanda,categorias:d.categorias,fcRef:d.fcRef,deliveryTaxa:d.deliveryTaxa||0,buffet:d.buffet,importadoEm:d.importadoEm};
+  const src={insumos:ins,fichas:d.fichas,cfg};
+  for(const k of Object.keys(DOCS)){
+    if(onlyMissing&&got[k]){S[k]=got[k];continue}
+    S[k]=src[k];save(k);
+  }
+}
+function pedirBackupInicial(){
+  return new Promise(res=>{
+    $("#main").innerHTML=`<div class="card grid" style="max-width:620px"><h2>Primeira abertura neste computador</h2>
+      <p>Para trazer seus dados, abra o app no Claude, vá em <b>Dados e backup</b>, clique em <b>Backup completo (.json)</b> e carregue o arquivo aqui.</p>
+      <div><label class="btn pri" for="bk0">Carregar backup…</label><input type="file" id="bk0" accept=".json,application/json" class="hidden"></div>
+      <p class="small muted">Os dados ficam guardados neste computador. Faça um backup de vez em quando em Dados e backup.</p></div>`;
+    $("#bk0").onchange=async e=>{try{const d=JSON.parse(await e.target.files[0].text());if(!d.insumos||!d.fichas||!d.cfg)throw 0;
+      S=d;["insumos","fichas","cfg"].forEach(k=>lsSet("cmv_"+k,S[k]));res()}catch(x){toast("Arquivo de backup inválido.")}};
+  });
+}
+function normalizeCfg(){
+  const c=S.cfg;c.simulador=c.simulador||{};c.demanda=c.demanda||[];c.buffet=c.buffet||{itens:[],refeicoes:100,expectativa:150,precoPraticado:100};
+  c.categorias=c.categorias||[];c.deliveryTaxa=c.deliveryTaxa||0;c.fcRef=c.fcRef||[];c.bebidas=c.bebidas||[];
+}
+
+/* ================= motor de cálculo ================= */
+const BASE={kg:"kg",g:"kg",l:"l",ml:"l",un:"un"};
+const toBase=(q,u)=>(u==="g"||u==="ml")?q/1000:q;
+function insById(id){return S.insumos.find(i=>i.id===Number(id))}
+function fichaByCod(c){return S.fichas.find(f=>f.cod===c)}
+function unitsFor(ref){
+  if(typeof ref==="string")return["kg","g","porções"];
+  const i=insById(ref);if(!i)return["kg","g","l","ml","un"];
+  return i.un==="kg"?["kg","g"]:i.un==="l"?["l","ml"]:["un"];
+}
+function precoUnit(i){return i&&i.qtd>0?i.preco/i.qtd:0}            // R$ por kg/l/un
+function precoComFC(i){return precoUnit(i)*(i.fc||1)}
+function cfgCalc(){
+  const c=S.cfg;
+  const fixos=(c.custosFixos||[]).reduce((a,b)=>a+(+b.valor||0),0);
+  const fats=(c.faturamento||[]).filter(v=>v>0);
+  const fatMedia=fats.length?fats.reduce((a,b)=>a+b,0)/fats.length:0;
+  const pFix=fatMedia?fixos/fatMedia:0;
+  const pVarR=(c.varRef||[]).reduce((a,b)=>a+(+b.valor||0),0)/100;
+  const pVarB=(c.varBeb||[]).reduce((a,b)=>a+(+b.valor||0),0)/100;
+  const L=+c.lucroDesejado||0;
+  const mkA=1-(pFix+pVarR+L)>0?1/(1-(pFix+pVarR+L)):NaN;
+  const mkB=1-(pFix+pVarB+L)>0?1/(1-(pFix+pVarB+L)):NaN;
+  return{fixos,fatMedia,fatTotal:(c.faturamento||[]).reduce((a,b)=>a+(+b||0),0),pFix,pVarR,pVarB,L,mkA,mkB,custoMax:1-(L+pFix+pVarR)};
+}
+let memo=null;
+function resetMemo(){memo=new Map()}
+function linha(it,stack){
+  // retorna {nome, bruta (base), un, pu (R$/base), custo, ok}
+  if(typeof it.ref==="string"){
+    const f=fichaByCod(it.ref);
+    if(!f)return{nome:"Ficha "+it.ref+" não encontrada",bruta:0,un:"kg",pu:0,custo:0,ok:false};
+    if(stack.includes(f.cod))return{nome:f.nome+" (referência circular)",bruta:0,un:"kg",pu:0,custo:0,ok:false};
+    const r=calcFicha(f,stack);
+    const kg=it.un==="porções"?it.qtd*(f.rend/(f.porcoes||1)):toBase(it.qtd,it.un);
+    const pu=f.rend?r.custoReceita/f.rend:0;
+    return{nome:f.nome,bruta:kg,un:"kg",pu,custo:kg*pu,ok:true,sub:true};
+  }
+  const i=insById(it.ref);
+  if(!i)return{nome:"Insumo "+it.ref+" não encontrado",bruta:0,un:"",pu:0,custo:0,ok:false};
+  const bruta=toBase(it.qtd,it.un)*(i.fc||1);
+  const pu=precoUnit(i);
+  return{nome:i.nome,bruta,un:i.un,pu,custo:bruta*pu,ok:true,fc:i.fc||1};
+}
+function calcFicha(f,stack=[]){
+  if(!memo)resetMemo();
+  if(memo.has(f.cod))return memo.get(f.cod);
+  const st=[...stack,f.cod];
+  const linhas=f.itens.map(it=>linha(it,st));
+  const custo=linhas.reduce((a,b)=>a+b.custo,0);
+  const custoReceita=custo*(1+(+f.perdas||0)/100);
+  const k=cfgCalc();
+  const preco=+f.preco||0;
+  const fixos=preco*k.pFix, varr=preco*k.pVarR;
+  const lucro=preco-(custoReceita+fixos+varr);
+  const r={linhas,custo,custoReceita,porcao:custoReceita/(f.porcoes||1),kg:f.rend?custoReceita/f.rend:0,
+    preco,fixos,varr,lucro,pLucro:preco?lucro/preco:NaN,pCusto:preco?custoReceita/preco:NaN,
+    margem:preco?preco-(custoReceita+varr):NaN,pMargem:preco?(preco-(custoReceita+varr))/preco:NaN,
+    sugerido:custoReceita*k.mkA};
+  memo.set(f.cod,r);return r;
+}
+function usosInsumo(id){return S.fichas.filter(f=>f.itens.some(it=>it.ref===id))}
+function usosFicha(cod){return S.fichas.filter(f=>f.itens.some(it=>it.ref===cod))}
+function medias(){
+  resetMemo();
+  const com=S.fichas.filter(f=>+f.preco>0).map(f=>calcFicha(f));
+  const avg=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:NaN;
+  return{n:com.length,lucro:avg(com.map(r=>r.pLucro)),margem:avg(com.map(r=>r.pMargem)),custo:avg(com.map(r=>r.pCusto))};
+}
+function statusFicha(r){
+  const k=cfgCalc();
+  if(!r.preco)return'<span class="pill n">Sem preço</span>';
+  if(r.pLucro<0)return'<span class="pill bad">Prejuízo</span>';
+  if(r.pLucro<k.L)return'<span class="pill warn">Abaixo da meta</span>';
+  return'<span class="pill good">Na meta</span>';
+}
+/* explosão de ingredientes para produção */
+function explodir(f,kgNecessario,acc){
+  if(!f.rend)return;
+  const fator=kgNecessario/f.rend;
+  for(const it of f.itens){
+    if(typeof it.ref==="string"){
+      const sub=fichaByCod(it.ref);if(!sub)continue;
+      const kg=it.un==="porções"?it.qtd*(sub.rend/(sub.porcoes||1)):toBase(it.qtd,it.un);
+      explodir(sub,kg*fator,acc);
+    }else{
+      const i=insById(it.ref);if(!i)continue;
+      const q=toBase(it.qtd,it.un)*(i.fc||1)*fator;
+      const a=acc.get(i.id)||{i,q:0,de:new Set()};a.q+=q;a.de.add(f.nome);acc.set(i.id,a);
+    }
+  }
+}
+
+/* ================= sugestão de preços (Tangará da Serra) ================= */
+let SAMPLE;
+async function getSample(){if(SAMPLE===undefined){try{SAMPLE=await claude.use("sample")}catch(e){SAMPLE=null}}return SAMPLE}
+const PRICE_CONTEXT=`Você é comprador de um restaurante em Tangará da Serra, Mato Grosso (Brasil). Mês de referência: ${new Date().toLocaleDateString("pt-BR",{month:"long",year:"numeric"})}.
+Estime o preço de COMPRA praticado em Tangará da Serra/MT para cada item, como se encontra nos atacarejos e mercados da cidade (Atacadão, Atacado Modelo, Hipermercado Gotardo, açougues, peixarias e hortifrútis locais) e em distribuidoras de bebidas da região. Considere preços de Mato Grosso (frete do interior, carne bovina e pescados regionais como pirarucu, pacu e pintado costumam ser mais baratos que no Sudeste; hortifrúti e itens importados costumam ser mais caros).
+Use a embalagem informada quando houver; se não houver, use a embalagem mais comum de compra para restaurante.
+Responda SOMENTE JSON no formato:
+{"itens":[{"nome":"<igual ao recebido>","preco_embalagem":0,"qtd_embalagem":0,"unidade":"kg|l|un","faixa_min":0,"faixa_max":0,"onde_comprar":"<tipo de loja ou loja>","obs":"<curta>","confianca":"alta|media|baixa"}]}
+preco_embalagem é o valor pago pela embalagem inteira em reais; faixa_min e faixa_max são o preço por unidade base (R$/kg, R$/l ou R$/un).`;
+async function sugerirPrecos(itens){
+  const s=await getSample();
+  if(!s)throw new Error("A sugestão de preços não está disponível nesta visualização.");
+  const lista=itens.map(i=>`- ${i.nome} | embalagem: ${i.qtd?nf(i.qtd)+" "+i.un:"não informada"}${i.preco?" | preço atual cadastrado: R$ "+nf(i.preco,2):""}`).join("\n");
+  let out;
+  try{out=await s.json(PRICE_CONTEXT+"\n\nItens:\n"+lista,{modelTier:"default"})}
+  catch(e){
+    if(e&&e.code==="not_granted")throw new Error("Permissão para consultar o Claude não foi concedida.");
+    if(e&&e.code==="rate_limited")throw new Error("Muitas consultas seguidas. Aguarde um minuto e tente de novo.");
+    throw new Error(e&&e.message||"Falha na consulta.");
+  }
+  return(out&&out.itens)||[];
+}
+const googleLink=nome=>`https://www.google.com/search?q=${encodeURIComponent("preço "+nome+" Tangará da Serra MT")}`;
+
+/* ================= modal ================= */
+function modal(html,{wide=false,onMount}={}){
+  const root=$("#modalRoot");
+  root.innerHTML=`<div class="modal-bg"><div class="modal ${wide?"wide":""}" role="dialog" aria-modal="true">${html}</div></div>`;
+  const bg=root.firstElementChild;
+  const close=()=>{root.innerHTML="";document.removeEventListener("keydown",onKey)};
+  const onKey=e=>{if(e.key==="Escape")close()};
+  document.addEventListener("keydown",onKey);
+  bg.addEventListener("mousedown",e=>{if(e.target===bg)close()});
+  bg.querySelectorAll("[data-close]").forEach(b=>b.onclick=close);
+  const m=bg.firstElementChild;
+  onMount&&onMount(m,close);
+  const first=m.querySelector("input,select,textarea,button");first&&first.focus();
+  return close;
+}
+function confirmar(msg,ok){modal(`<h3>Confirmar</h3><p>${msg}</p><div class="actions"><button class="btn" data-close>Cancelar</button><button class="btn pri danger" id="cOk">Confirmar</button></div>`,{onMount:(m,close)=>{$("#cOk",m).onclick=()=>{close();ok()}}})}
+
+/* ================= navegação ================= */
+const VIEWS=[
+  ["painel","Painel"],["insumos","Insumos"],["fichas","Fichas técnicas"],["cardapio","Cardápio e preços"],
+  ["bebidas","Bebidas prontas"],["custos","Custos e faturamento"],["producao","Produção e compras"],["buffet","Buffet"],["fc","Tabela de FC"],["dados","Dados e backup"]];
+let view="painel", fichaAberta=null;
+function go(v,extra){view=v;if(v==="ficha")fichaAberta=extra;try{if(v!=="ficha")location.hash=v}catch(e){}$("#main").scrollTop=0;renderNav();render()}
+const GRUPOS=[["Visão geral",["painel"]],["Cardápio",["fichas","cardapio","bebidas"]],["Compras",["insumos","producao"]],["Gestão",["custos","buffet"]],["Referência",["fc","dados"]]];
+function temaAtual(){try{return localStorage.getItem("cmv_tema")||""}catch(e){return""}}
+function aplicarTema(t){if(t)document.documentElement.setAttribute("data-theme",t);else document.documentElement.removeAttribute("data-theme");try{localStorage.setItem("cmv_tema",t)}catch(e){}}
+aplicarTema(temaAtual());
+function renderNav(){
+  const counts={insumos:S.insumos.length,fichas:S.fichas.length,bebidas:S.cfg.bebidas.length};
+  const nome=Object.fromEntries(VIEWS);const t=temaAtual();
+  $("#nav").innerHTML=`<div class="brand"><img src="logo.png" alt="Salto das Nuvens" width="196" height="30"><span class="eyebrow">Custos &amp; fichas</span></div>
+   <div class="links">${GRUPOS.map(([g,vs])=>`<div class="sec">${g}</div>`+vs.map(k=>`<button class="${view===k||(view==="ficha"&&k==="fichas")?"on":""}" data-v="${k}"><span>${nome[k]}</span>${counts[k]!=null?`<span class="count">${counts[k]}</span>`:""}</button>`).join("")).join("")}</div>
+   <div class="foot"><div class="status" id="saveStatus"><span class="dot ${DB||NO_CLAUDE?"":"off"}"></span>${DB?"Salvo na nuvem":NO_CLAUDE?"Salvo neste computador":"Salvo só neste navegador"}</div>
+   <button class="btn sm" id="tema">Tema: ${t==="dark"?"escuro":t==="light"?"claro":"automático"}</button>
+   <div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><span>Usuário: saltodasnuvens</span><button class="btn sm" id="logout">Sair</button></div></div>`;
+  $("#nav").querySelectorAll("[data-v]").forEach(b=>b.onclick=()=>go(b.dataset.v));
+  $("#logout").onclick=()=>{try{sessionStorage.removeItem("cmv_auth")}catch(e){}location.reload()};
+  $("#tema").onclick=()=>{const n={"":"light",light:"dark",dark:""}[temaAtual()];aplicarTema(n);renderNav()};
+}
+function render(){resetMemo();const fn=R[view]||R.painel;$("#main").innerHTML="";fn($("#main"));
+  const h1=$("#main .head h1");const g=GRUPOS.find(([,vs])=>vs.includes(view==="ficha"?"fichas":view));
+  if(h1&&g&&!h1.previousElementSibling?.classList.contains("eyebrow")){const e=document.createElement("div");e.className="eyebrow";e.style.marginBottom="6px";e.textContent=view==="ficha"?"Ficha técnica":g[0];h1.before(e)}}
+const R={};
+
+/* ================= PAINEL ================= */
+R.painel=el=>{
+  const k=cfgCalc(), m=medias();
+  const pe=m.margem>0?k.fixos/m.margem:NaN, meta=pe/(1-k.L);
+  const rs=S.fichas.map(f=>({f,r:calcFicha(f)}));
+  const prejuizo=rs.filter(x=>x.r.preco&&x.r.pLucro<0).sort((a,b)=>a.r.pLucro-b.r.pLucro);
+  const abaixo=rs.filter(x=>x.r.preco&&x.r.pLucro>=0&&x.r.pLucro<k.L).sort((a,b)=>a.r.pLucro-b.r.pLucro);
+  const semPreco=S.insumos.filter(i=>!(i.preco>0&&i.qtd>0));
+  const antigos=S.insumos.filter(i=>i.atualizado&&(Date.now()-new Date(i.atualizado))/864e5>60);
+  const topIns=[...S.insumos].map(i=>{let tot=0;for(const x of rs){for(let j=0;j<x.f.itens.length;j++)if(x.f.itens[j].ref===i.id)tot+=x.r.linhas[j].custo}return{i,tot,n:usosInsumo(i.id).length}}).filter(x=>x.n).sort((a,b)=>b.tot-a.tot).slice(0,8);
+  el.innerHTML=`
+  <div class="head"><div><h1>Painel</h1><p>Resumo do custo da mercadoria vendida, metas e pontos de atenção do cardápio.</p></div>
+  <div class="tools"><button class="btn ai pri" id="ia">Descrever produto novo</button><button class="btn" id="nf">Nova ficha em branco</button><button class="btn" id="ni">Novo insumo</button></div></div>
+  <div class="kpis">
+    <div class="kpi"><div class="l">Lucro médio praticado</div><div class="v">${pct(m.lucro)}</div><div class="s">meta ${pct(k.L,0)} · ${m.n} fichas com preço</div></div>
+    <div class="kpi"><div class="l">CMV médio (% custo)</div><div class="v">${pct(m.custo)}</div><div class="s">máximo para a meta: ${pct(k.custoMax)}</div></div>
+    <div class="kpi"><div class="l">Margem de contribuição</div><div class="v">${pct(m.margem)}</div><div class="s">média das fichas com preço</div></div>
+    <div class="kpi"><div class="l">Markup alimentos</div><div class="v">${nf(k.mkA,2)}×</div><div class="s">bebidas ${nf(k.mkB,2)}×</div></div>
+    <div class="kpi"><div class="l">Ponto de equilíbrio / mês</div><div class="v">${brl(pe)}</div><div class="s">meta de faturamento ${brl(meta)}</div></div>
+    <div class="kpi"><div class="l">Custos fixos / mês</div><div class="v">${brl(k.fixos)}</div><div class="s">${pct(k.pFix)} do faturamento médio</div></div>
+  </div>
+  <div class="two">
+    <div class="card grid"><h3>Fichas com prejuízo ou abaixo da meta</h3>
+      ${prejuizo.length+abaixo.length?`<div class="tablewrap" style="border:0"><table><thead><tr><th>Preparação</th><th class="n">Preço</th><th class="n">Sugerido</th><th class="n">Lucro</th><th></th></tr></thead><tbody>
+      ${[...prejuizo,...abaixo].slice(0,12).map(x=>`<tr class="click" data-f="${x.f.cod}"><td>${esc(x.f.nome)}</td><td class="n">${brl(x.r.preco)}</td><td class="n">${brl(x.r.sugerido)}</td><td class="n">${pct(x.r.pLucro)}</td><td>${statusFicha(x.r)}</td></tr>`).join("")}</tbody></table></div>`:`<p class="muted">Todas as fichas com preço estão na meta.</p>`}
+    </div>
+    <div class="card grid"><h3>Insumos que mais pesam no cardápio</h3>
+      <div class="tablewrap" style="border:0"><table><thead><tr><th>Insumo</th><th class="n">R$/un. base</th><th class="n">Fichas</th><th class="n">Custo somado</th></tr></thead><tbody>
+      ${topIns.map(x=>`<tr><td>${esc(x.i.nome)}</td><td class="n">${brl(precoUnit(x.i))}/${x.i.un}</td><td class="n">${x.n}</td><td class="n">${brl(x.tot)}</td></tr>`).join("")}</tbody></table></div>
+      ${semPreco.length?`<p class="small"><span class="pill warn">${semPreco.length}</span> insumo(s) sem preço ou sem quantidade de embalagem.</p>`:""}
+      ${antigos.length?`<p class="small"><span class="pill warn">${antigos.length}</span> insumo(s) com preço há mais de 60 dias. <button class="btn sm ai" id="revAnt">Revisar preços com sugestão</button></p>`:""}
+    </div>
+  </div>`;
+  el.querySelectorAll("[data-f]").forEach(t=>t.onclick=()=>go("ficha",t.dataset.f));
+  $("#nf",el).onclick=novaFicha; $("#ni",el).onclick=()=>editarInsumo(null); $("#ia",el).onclick=criarFichaIA;
+  const ra=$("#revAnt",el); if(ra)ra.onclick=()=>revisarPrecos(antigos);
+};
+
+/* ================= INSUMOS ================= */
+let insQ="",insSort={k:"nome",d:1};
+R.insumos=el=>{
+  el.innerHTML=`<div class="head"><div><h1>Insumos</h1><p>Preço pago, embalagem e fator de correção (FC). Edite direto na tabela; as fichas recalculam na hora.</p></div>
+  <div class="tools"><input class="f search" id="q" placeholder="Buscar insumo" value="${esc(insQ)}" aria-label="Buscar insumo"><button class="btn ai" id="rev">Sugerir preços (Tangará da Serra)</button><button class="btn pri" id="add">Novo insumo</button></div></div>
+  <div class="tablewrap"><table><thead><tr>
+   <th class="sort n" data-k="id">Cód.</th><th class="sort" data-k="nome">Insumo</th><th class="n sort" data-k="preco">Valor pago</th><th class="n">Embalagem</th><th>Unid.</th><th class="n sort" data-k="fc">FC</th><th class="n sort" data-k="pu">R$ / unid.</th><th class="n sort" data-k="pfc">R$ c/ FC</th><th class="n sort" data-k="uso">Fichas</th><th class="sort" data-k="atualizado">Atualizado</th><th></th></tr></thead><tbody id="tb"></tbody></table></div>`;
+  const tb=$("#tb",el);
+  const draw=()=>{
+    const q=norm(insQ);
+    let rows=S.insumos.filter(i=>!q||norm(i.nome).includes(q)||String(i.id)===q).map(i=>({i,pu:precoUnit(i),pfc:precoComFC(i),uso:usosInsumo(i.id).length}));
+    const k=insSort.k;rows.sort((a,b)=>{const va=k in a?a[k]:a.i[k],vb=k in b?b[k]:b.i[k];return(typeof va==="string"?va.localeCompare(vb,"pt"):(va||0)-(vb||0))*insSort.d});
+    tb.innerHTML=rows.map(({i,pu,pfc,uso})=>`<tr data-id="${i.id}">
+      <td class="n muted">${i.id}</td>
+      <td style="min-width:200px"><input class="cell l" data-k="nome" value="${esc(i.nome)}" aria-label="Nome"></td>
+      <td class="n" style="width:110px"><input class="cell" data-k="preco" value="${nf(i.preco,2)}" aria-label="Valor pago"></td>
+      <td class="n" style="width:90px"><input class="cell" data-k="qtd" value="${nf(i.qtd,3)}" aria-label="Quantidade da embalagem"></td>
+      <td><select class="cell l" data-k="un" aria-label="Unidade">${["kg","l","un"].map(u=>`<option ${u===i.un?"selected":""}>${u}</option>`).join("")}</select></td>
+      <td class="n" style="width:80px"><input class="cell" data-k="fc" value="${nf(i.fc,3)}" aria-label="Fator de correção"></td>
+      <td class="n" data-o="pu">${brl(pu)}</td><td class="n" data-o="pfc">${brl(pfc)}</td>
+      <td class="n">${uso||'<span class="muted">0</span>'}</td>
+      <td class="small muted">${fmtDate(i.atualizado)}${i.fonte==="sugestao"?' <span class="pill warn" title="Preço vindo de sugestão">sugerido</span>':""}</td>
+      <td style="white-space:nowrap"><button class="btn sm ai" data-a="sug" title="Sugerir preço">Sugerir</button> <button class="btn sm" data-a="ed">Editar</button></td></tr>`).join("")||`<tr><td colspan="11" class="muted">Nenhum insumo encontrado.</td></tr>`;
+  };
+  draw();
+  $("#q",el).oninput=e=>{insQ=e.target.value;draw()};
+  el.querySelectorAll("th.sort").forEach(th=>th.onclick=()=>{insSort={k:th.dataset.k,d:insSort.k===th.dataset.k?-insSort.d:1};draw()});
+  tb.addEventListener("change",e=>{
+    const t=e.target,tr=t.closest("tr");if(!tr||!t.dataset.k)return;
+    const i=insById(tr.dataset.id),k=t.dataset.k;
+    i[k]=(k==="nome"||k==="un")?t.value.trim():pnum(t.value);
+    if(k==="fc"&&!i.fc)i.fc=1;
+    if(k==="preco"||k==="qtd"){i.atualizado=today();i.fonte="manual"}
+    save("insumos");
+    $('[data-o="pu"]',tr).textContent=brl(precoUnit(i));$('[data-o="pfc"]',tr).textContent=brl(precoComFC(i));
+    if(k!=="nome"&&k!=="un")t.value=nf(i[k],k==="preco"?2:3);
+  });
+  tb.addEventListener("click",e=>{
+    const b=e.target.closest("button");if(!b)return;const i=insById(b.closest("tr").dataset.id);
+    if(b.dataset.a==="ed")editarInsumo(i);else revisarPrecos([i]);
+  });
+  $("#add",el).onclick=()=>editarInsumo(null);
+  $("#rev",el).onclick=()=>{
+    const q=norm(insQ);const lista=S.insumos.filter(i=>!q||norm(i.nome).includes(q));
+    revisarPrecos(lista);
+  };
+};
+function editarInsumo(i,onSaved){
+  const novo=!i;
+  const d=i?{...i}:{id:Math.max(0,...S.insumos.map(x=>x.id))+1,nome:"",preco:0,qtd:1,un:"kg",fc:1};
+  const usos=i?usosInsumo(i.id):[];
+  modal(`<h2>${novo?"Novo insumo":"Editar insumo"}</h2>
+  <div class="form">
+    <label class="wide" for="mi_nome">Nome do insumo<input class="f" id="mi_nome" value="${esc(d.nome)}" placeholder="Ex.: Picanha bovina, Queijo muçarela, Coca-Cola 2 l"></label>
+    <label for="mi_preco">Valor pago (R$)<input class="f" id="mi_preco" inputmode="decimal" value="${d.preco?nf(d.preco,2):""}"></label>
+    <label for="mi_qtd">Conteúdo da embalagem<input class="f" id="mi_qtd" inputmode="decimal" value="${nf(d.qtd,3)}"></label>
+    <label for="mi_un">Unidade<select class="f" id="mi_un">${["kg","l","un"].map(u=>`<option ${u===d.un?"selected":""}>${u}</option>`).join("")}</select></label>
+    <label for="mi_fc">Fator de correção (FC)<input class="f" id="mi_fc" inputmode="decimal" value="${nf(d.fc,3)}"></label>
+  </div>
+  <div class="small muted" id="mi_calc"></div>
+  <div><button class="btn ai" id="mi_sug">Sugerir preço em Tangará da Serra</button> <a class="small" id="mi_g" href="${googleLink(d.nome)}" target="_blank" rel="noopener">Pesquisar no Google</a></div>
+  <div id="mi_out"></div>
+  ${usos.length?`<p class="small muted">Usado em ${usos.length} ficha(s): ${usos.slice(0,6).map(f=>esc(f.nome)).join(", ")}${usos.length>6?"…":""}</p>`:""}
+  <div class="actions">${!novo?`<button class="btn danger" id="mi_del">Excluir</button>`:""}<span style="flex:1"></span><button class="btn" data-close>Cancelar</button><button class="btn pri" id="mi_ok">Salvar</button></div>`,
+  {onMount:(m,close)=>{
+    const calc=()=>{const p=pnum($("#mi_preco",m).value),q=pnum($("#mi_qtd",m).value),u=$("#mi_un",m).value,fc=pnum($("#mi_fc",m).value)||1;
+      $("#mi_calc",m).textContent=q>0?`${brl(p/q)} por ${u} · com FC ${nf(fc,3)}: ${brl(p/q*fc)} por ${u} limpo`:"Informe o conteúdo da embalagem.";
+      $("#mi_g",m).href=googleLink($("#mi_nome",m).value)};
+    m.addEventListener("input",calc);calc();
+    $("#mi_sug",m).onclick=async()=>{
+      const nome=$("#mi_nome",m).value.trim();if(!nome){toast("Digite o nome do insumo primeiro.");return}
+      const b=$("#mi_sug",m);b.disabled=true;b.textContent="Pesquisando preço…";
+      try{
+        const [s]=await sugerirPrecos([{nome,qtd:pnum($("#mi_qtd",m).value),un:$("#mi_un",m).value,preco:pnum($("#mi_preco",m).value)}]);
+        if(!s)throw new Error("Sem resposta para este item.");
+        $("#mi_out",m).innerHTML=`<div class="sugg"><b>Sugestão: ${brl(s.preco_embalagem)} por ${nf(s.qtd_embalagem)} ${esc(s.unidade)}</b>
+          <span class="small">Faixa em Tangará da Serra: ${brl(s.faixa_min)} a ${brl(s.faixa_max)} por ${esc(s.unidade)} · confiança ${esc(s.confianca)}</span>
+          <span class="small muted">${esc(s.onde_comprar||"")}${s.obs?" · "+esc(s.obs):""}</span>
+          <span class="small muted">Estimativa do Claude, sem consulta a sites em tempo real. Confira na nota ou no encarte antes de usar.</span>
+          <div><button class="btn sm ai pri" id="mi_use">Usar este preço</button></div></div>`;
+        $("#mi_use",m).onclick=()=>{$("#mi_preco",m).value=nf(s.preco_embalagem,2);$("#mi_qtd",m).value=nf(s.qtd_embalagem,3);if(["kg","l","un"].includes(s.unidade))$("#mi_un",m).value=s.unidade;m.dataset.sug="1";calc()};
+      }catch(e){$("#mi_out",m).innerHTML=`<p class="err">${esc(e.message)}</p>`}
+      finally{b.disabled=false;b.textContent="Sugerir preço em Tangará da Serra"}
+    };
+    $("#mi_ok",m).onclick=()=>{
+      const nome=$("#mi_nome",m).value.trim();if(!nome){toast("Informe o nome.");return}
+      const nd={...d,nome,preco:pnum($("#mi_preco",m).value),qtd:pnum($("#mi_qtd",m).value)||1,un:$("#mi_un",m).value,fc:pnum($("#mi_fc",m).value)||1};
+      if(novo||nd.preco!==d.preco||nd.qtd!==d.qtd){nd.atualizado=today();nd.fonte=m.dataset.sug?"sugestao":"manual"}
+      if(novo)S.insumos.push(nd);else Object.assign(i,nd);
+      save("insumos");close();toast(novo?"Insumo cadastrado.":"Insumo salvo.");
+      onSaved?onSaved(nd):render();renderNav();
+    };
+    const del=$("#mi_del",m);if(del)del.onclick=()=>{
+      if(usos.length){toast("Remova este insumo das fichas antes de excluir.");return}
+      close();confirmar(`Excluir <b>${esc(i.nome)}</b>?`,()=>{S.insumos=S.insumos.filter(x=>x!==i);save("insumos");render();renderNav()});
+    };
+  }});
+}
+async function revisarPrecos(lista){
+  if(!lista.length){toast("Nenhum insumo para revisar.");return}
+  const LOTE=15;let fila=[...lista];const res=new Map();
+  const close=modal(`<h2>Sugestão de preços · Tangará da Serra (MT)</h2>
+   <p class="small muted">Estimativas do Claude para o mercado de Tangará da Serra, sem consulta a sites em tempo real. Marque as que quer aplicar; confira valores importantes com notas, encartes ou o link do Google de cada item.</p>
+   <div class="small" id="rv_st">${lista.length} item(ns). Consultando em lotes de ${LOTE}…</div>
+   <div class="tablewrap"><table><thead><tr><th><input type="checkbox" id="rv_all" aria-label="Marcar todos"></th><th>Insumo</th><th class="n">Atual</th><th class="n">Sugerido</th><th class="n">Dif.</th><th>Faixa (R$/base)</th><th>Onde</th><th></th></tr></thead><tbody id="rv_tb"></tbody></table></div>
+   <div class="actions"><button class="btn" data-close>Fechar</button><button class="btn pri" id="rv_ok" disabled>Aplicar marcados</button></div>`,{wide:true});
+  const m=$("#modalRoot .modal");if(!m)return;
+  const tb=$("#rv_tb",m);
+  const drawRow=i=>{
+    const s=res.get(i.id);const atual=precoUnit(i);
+    const su=s&&s.qtd_embalagem>0?s.preco_embalagem/s.qtd_embalagem:NaN;const dif=atual&&isFinite(su)?su/atual-1:NaN;
+    const unOk=s&&(s.unidade===i.un);
+    return`<tr data-id="${i.id}"><td>${s&&!s.erro?`<input type="checkbox" class="rv_c" aria-label="Aplicar">`:""}</td><td>${esc(i.nome)}<div class="small muted">${nf(i.qtd)} ${i.un}</div></td>
+      <td class="n">${brl(atual)}/${i.un}</td>
+      <td class="n">${s?(s.erro?'<span class="muted">sem resposta</span>':`${brl(su)}/${esc(s.unidade)}<div class="small muted">${brl(s.preco_embalagem)} por ${nf(s.qtd_embalagem)} ${esc(s.unidade)}</div>`):'<span class="muted">aguardando…</span>'}</td>
+      <td class="n">${isFinite(dif)?`<span class="pill ${Math.abs(dif)<.1?"good":Math.abs(dif)<.3?"warn":"bad"}">${dif>0?"+":""}${pct(dif,0)}</span>`:""}${s&&!s.erro&&!unOk?'<div class="small" style="color:var(--warn)">unidade diferente</div>':""}</td>
+      <td class="small">${s&&!s.erro?`${brl(s.faixa_min)} a ${brl(s.faixa_max)} · ${esc(s.confianca||"")}`:""}</td>
+      <td class="small">${s&&!s.erro?esc(s.onde_comprar||""):""}</td>
+      <td><a class="small" href="${googleLink(i.nome)}" target="_blank" rel="noopener">Google</a></td></tr>`;
+  };
+  const drawAll=()=>{tb.innerHTML=lista.map(drawRow).join("")};
+  drawAll();
+  let feitos=0;
+  while(fila.length&&document.body.contains(tb)){
+    const lote=fila.splice(0,LOTE);
+    try{
+      const out=await sugerirPrecos(lote);
+      lote.forEach((i,ix)=>{const s=out.find(o=>norm(o.nome)===norm(i.nome))||out[ix];res.set(i.id,s||{erro:true})});
+    }catch(e){lote.forEach(i=>res.set(i.id,{erro:true}));$("#rv_st",m).innerHTML=`<span class="err">${esc(e.message)}</span>`;drawAll();if(/Permissão|disponível/.test(e.message))break;}
+    feitos+=lote.length;if(document.body.contains(tb)){drawAll();$("#rv_st",m).textContent=`${feitos} de ${lista.length} consultados.`;$("#rv_ok",m).disabled=false}
+  }
+  if(!document.body.contains(tb))return;
+  $("#rv_all",m).onchange=e=>m.querySelectorAll(".rv_c").forEach(c=>c.checked=e.target.checked);
+  $("#rv_ok",m).onclick=()=>{
+    let n=0;m.querySelectorAll(".rv_c:checked").forEach(c=>{
+      const i=insById(c.closest("tr").dataset.id),s=res.get(i.id);if(!s||s.erro)return;
+      if(s.unidade===i.un||!usosInsumo(i.id).length){i.preco=+s.preco_embalagem;i.qtd=+s.qtd_embalagem||1;if(["kg","l","un"].includes(s.unidade))i.un=s.unidade}
+      else{i.preco=+s.preco_embalagem/(+s.qtd_embalagem||1)*i.qtd}
+      i.atualizado=today();i.fonte="sugestao";n++;
+    });
+    if(n){save("insumos");toast(`${n} preço(s) atualizado(s).`)}
+    $("#modalRoot").innerHTML="";render();
+  };
+}
+
+/* ================= FICHAS ================= */
+let fQ="",fCat="";
+R.fichas=el=>{
+  const cats=[...new Set(S.fichas.map(f=>f.cat))].sort((a,b)=>a.localeCompare(b,"pt"));
+  el.innerHTML=`<div class="head"><div><h1>Fichas técnicas</h1><p>Receitas com ingredientes, rendimento, perdas e preço de venda. Clique numa ficha para abrir.</p></div>
+  <div class="tools"><input class="f search" id="q" placeholder="Buscar ficha" value="${esc(fQ)}" aria-label="Buscar ficha"><button class="btn ai pri" id="ia">Descrever produto novo</button><button class="btn" id="nf">Nova ficha em branco</button></div></div>
+  <div class="chips" style="margin-bottom:12px"><button class="chip ${fCat?"":"on"}" data-c="">Todas</button>${cats.map(c=>`<button class="chip ${fCat===c?"on":""}" data-c="${esc(c)}">${esc(c)}</button>`).join("")}</div>
+  <div class="tablewrap"><table><thead><tr><th>Cód.</th><th>Preparação</th><th>Categoria</th><th class="n">Rend.</th><th class="n">Porções</th><th class="n">Custo receita</th><th class="n">Custo/porção</th><th class="n">Custo/kg</th><th class="n">Preço</th><th class="n">% Custo</th><th>Situação</th></tr></thead><tbody id="tb"></tbody></table></div>`;
+  const draw=()=>{const q=norm(fQ);
+    $("#tb",el).innerHTML=S.fichas.filter(f=>(!fCat||f.cat===fCat)&&(!q||norm(f.nome).includes(q)||norm(f.cod).includes(q))).map(f=>{const r=calcFicha(f);
+      return`<tr class="click" data-f="${f.cod}"><td class="muted">${f.cod}</td><td><b>${esc(f.nome)}</b></td><td class="small">${esc(f.cat)}</td><td class="n">${nf(f.rend)} kg</td><td class="n">${nf(f.porcoes)}</td><td class="n">${brl(r.custoReceita)}</td><td class="n">${brl(r.porcao)}</td><td class="n">${brl(r.kg)}</td><td class="n">${r.preco?brl(r.preco):"–"}</td><td class="n">${pct(r.pCusto)}</td><td>${statusFicha(r)}</td></tr>`}).join("")||`<tr><td colspan="11" class="muted">Nenhuma ficha.</td></tr>`;
+    $("#tb",el).querySelectorAll("[data-f]").forEach(t=>t.onclick=()=>go("ficha",t.dataset.f))};
+  draw();
+  $("#q",el).oninput=e=>{fQ=e.target.value;draw()};
+  el.querySelectorAll("[data-c]").forEach(b=>b.onclick=()=>{fCat=b.dataset.c;R.fichas(el)});
+  $("#nf",el).onclick=novaFicha; $("#ia",el).onclick=criarFichaIA;
+};
+/* ---------- criar ficha a partir de uma descrição por extenso ---------- */
+let iaRascunho="";
+function criarFichaIA(){
+  const cats=[...new Set([...S.cfg.categorias,...S.fichas.map(x=>x.cat)])];
+  modal(`<h2>Descrever produto novo</h2>
+   <p class="small muted">Escreva do seu jeito o que quer servir: o prato, os ingredientes e as quantidades que você já sabe, para quantas pessoas, o tamanho da porção e o preço de venda se já tiver ideia. O que faltar, o Claude completa. Ele usa os insumos cadastrados e sugere preço de Tangará da Serra para os que forem novos.</p>
+   <label for="ia_txt" class="small"><b>Descrição</b></label>
+   <textarea class="f" id="ia_txt" rows="7" placeholder="Ex.: Quero servir uma porção de tilápia empanada com 500 g de filé, empanada na farinha panko, acompanhada de molho tártaro caseiro e limão. Serve 2 pessoas. Pensei em vender por uns R$ 69,90.">${esc(iaRascunho)}</textarea>
+   <div id="ia_out"></div>
+   <div class="actions"><button class="btn" data-close>Cancelar</button><button class="btn ai pri" id="ia_go">Montar ficha técnica</button></div>`,{wide:true,onMount:(m,close)=>{
+    const ta=$("#ia_txt",m);ta.oninput=()=>iaRascunho=ta.value;
+    $("#ia_go",m).onclick=async()=>{
+      const txt=ta.value.trim();if(txt.length<10){toast("Descreva o produto com um pouco mais de detalhe.");return}
+      const s=await getSample();if(!s){$("#ia_out",m).innerHTML=`<p class="err">A montagem automática não está disponível nesta visualização.</p>`;return}
+      const b=$("#ia_go",m);b.disabled=true;b.textContent="Montando a ficha…";$("#ia_out",m).innerHTML=`<p class="small muted">Isso leva alguns segundos.</p>`;
+      const prompt=`Você é chef e técnico de custos de um restaurante em Tangará da Serra, Mato Grosso (Brasil). Monte UMA ficha técnica a partir da descrição do dono do restaurante.
+
+Regras:
+- Use os INSUMOS CADASTRADOS sempre que houver um correspondente razoável, informando o insumo_id. Respeite a unidade do insumo: insumo em kg use "kg" ou "g"; em l use "l" ou "ml"; em un use "un".
+- Pode usar PREPARAÇÕES CADASTRADAS (sub-receitas) pelo ficha_cod, com unidade "kg", "g" ou "porções".
+- Ingrediente sem correspondente: preencha novo_insumo com nome comercial, preço de COMPRA estimado em Tangará da Serra/MT (${new Date().toLocaleDateString("pt-BR",{month:"long",year:"numeric"})}), a embalagem típica para restaurante e o fator de correção (1 se não houver perda no pré-preparo).
+- Quantidades LÍQUIDAS (já limpas) para a receita inteira. Respeite as quantidades que o dono informou.
+- rendimento_kg é o peso final pronto da receita; porcoes é quantas porções de venda ela rende; perdas_pct entre 0 e 10.
+- preco_venda: o valor que o dono informou para a receita inteira; 0 se ele não informou.
+- categoria: uma destas: ${cats.join(", ")}.
+- modo_preparo: passos curtos e objetivos.
+
+Responda SOMENTE JSON:
+{"nome":"","categoria":"","rendimento_kg":0,"porcoes":0,"perdas_pct":0,"preco_venda":0,"modo_preparo":"","observacoes":"","itens":[{"descricao":"","insumo_id":null,"ficha_cod":null,"novo_insumo":null,"qtd":0,"unidade":""}]}
+onde novo_insumo, quando usado, é {"nome":"","preco_embalagem":0,"qtd_embalagem":0,"unidade":"kg|l|un","fc":1}.
+
+INSUMOS CADASTRADOS (id | nome | unidade):
+${S.insumos.map(i=>`${i.id} | ${i.nome} | ${i.un}`).join("\n")}
+
+PREPARAÇÕES CADASTRADAS (código | nome | rendimento kg | porções):
+${S.fichas.map(f=>`${f.cod} | ${f.nome} | ${nf(f.rend)} | ${nf(f.porcoes)}`).join("\n")}
+
+DESCRIÇÃO DO DONO:
+${txt}`;
+      try{
+        const out=await s.json(prompt,{modelTier:"default"});
+        if(!out||!Array.isArray(out.itens)||!out.itens.length)throw new Error("Não consegui montar a ficha. Tente descrever com mais detalhes.");
+        previewFichaIA(m,close,out);
+      }catch(e){
+        const msg=e&&e.code==="not_granted"?"Permissão para consultar o Claude não foi concedida.":e&&e.code==="rate_limited"?"Muitas consultas seguidas. Aguarde um minuto e tente de novo.":(e&&e.message||"Falha ao montar a ficha.");
+        $("#ia_out",m).innerHTML=`<p class="err">${esc(msg)}</p>`;
+      }finally{b.disabled=false;b.textContent=$("#ia_ok",m)?"Montar de novo":"Montar ficha técnica"}
+    };
+  }});
+}
+function previewFichaIA(m,close,out){
+  // normaliza cada item para {tipo, ref|novo, qtd, un}
+  const itens=out.itens.map(it=>{
+    let tipo="novo",ref=null,novo=null,aviso="";
+    if(it.ficha_cod&&fichaByCod(String(it.ficha_cod).toUpperCase())){tipo="ficha";ref=String(it.ficha_cod).toUpperCase()}
+    else if(it.insumo_id!=null&&insById(it.insumo_id)){tipo="insumo";ref=Number(it.insumo_id)}
+    else if(it.novo_insumo&&it.novo_insumo.nome){
+      const ja=S.insumos.find(i=>norm(i.nome)===norm(it.novo_insumo.nome));
+      if(ja){tipo="insumo";ref=ja.id}
+      else{const n=it.novo_insumo;novo={nome:String(n.nome).trim(),preco:+n.preco_embalagem||0,qtd:+n.qtd_embalagem||1,un:["kg","l","un"].includes(n.unidade)?n.unidade:"kg",fc:+n.fc||1}}
+    }else return null;
+    let un=it.unidade, okUns=tipo==="novo"?(novo.un==="kg"?["kg","g"]:novo.un==="l"?["l","ml"]:["un"]):unitsFor(ref);
+    let qtd=+it.qtd||0;
+    if(!okUns.includes(un)){aviso=`veio em "${un||"?"}": informe a quantidade em ${okUns[0]}`;un=okUns[0];qtd=0}
+    return{tipo,ref,novo,qtd,un,okUns,desc:it.descricao||"",aviso,on:true};
+  }).filter(Boolean);
+  const calcLinha=x=>{
+    if(x.tipo==="novo"){const pu=x.novo.qtd?x.novo.preco/x.novo.qtd:0;const bruta=toBase(x.qtd,x.un)*x.novo.fc;return{nome:x.novo.nome,pu,bruta,custo:bruta*pu,base:x.novo.un}}
+    resetMemo();const l=linha({ref:x.ref,qtd:x.qtd,un:x.un},[]);return{...l,base:l.un};
+  };
+  const k=cfgCalc();
+  const draw=()=>{
+    const ls=itens.map(calcLinha);
+    const custo=itens.reduce((a,x,ix)=>a+(x.on?ls[ix].custo:0),0);
+    const perdas=Math.max(0,Math.min(30,+out.perdas_pct||0));
+    const cr=custo*(1+perdas/100);const porc=+out.porcoes||1;const preco=+out.preco_venda||0;
+    const lucro=preco?preco-cr-preco*k.pFix-preco*k.pVarR:NaN;
+    $("#ia_out",m).innerHTML=`<div class="card grid" style="margin-top:6px">
+      <div class="form">
+        <label class="wide" for="pv_nome">Nome<input class="f" id="pv_nome" value="${esc(out.nome||"Novo produto")}"></label>
+        <label for="pv_cat">Categoria<select class="f" id="pv_cat">${[...new Set([...S.cfg.categorias,...S.fichas.map(x=>x.cat)])].map(c=>`<option ${c===out.categoria?"selected":""}>${esc(c)}</option>`).join("")}</select></label>
+        <label for="pv_rend">Rendimento (kg)<input class="f" id="pv_rend" inputmode="decimal" value="${nf(out.rendimento_kg)}"></label>
+        <label for="pv_porc">Porções<input class="f" id="pv_porc" inputmode="decimal" value="${nf(porc)}"></label>
+        <label for="pv_preco">Preço de venda (R$)<input class="f" id="pv_preco" inputmode="decimal" value="${preco?nf(preco,2):""}" placeholder="vazio = usar sugerido depois"></label>
+      </div>
+      <div class="tablewrap" style="border:0"><table><thead><tr><th></th><th>Ingrediente</th><th>Origem</th><th class="n">Qtde</th><th>Unid.</th><th class="n">R$/base</th><th class="n">Custo</th></tr></thead><tbody>
+      ${itens.map((x,ix)=>{const l=ls[ix];return`<tr style="${x.on?"":"opacity:.45"}"><td><input type="checkbox" data-on="${ix}" ${x.on?"checked":""} aria-label="Incluir"></td>
+        <td>${esc(l.nome)}${x.desc&&norm(x.desc)!==norm(l.nome)?`<div class="small muted">${esc(x.desc)}</div>`:""}</td>
+        <td>${x.tipo==="insumo"?'<span class="pill good">cadastrado</span>':x.tipo==="ficha"?`<span class="pill n">${x.ref}</span>`:`<span class="pill warn" title="Preço sugerido para Tangará da Serra: ${esc(brl(x.novo.preco))} por ${nf(x.novo.qtd)} ${x.novo.un}">novo · preço sugerido</span>`}${x.aviso?`<div class="small" style="color:var(--warn)">${esc(x.aviso)}</div>`:""}</td>
+        <td class="n" style="width:90px"><input class="cell" data-q="${ix}" value="${x.qtd?nf(x.qtd,4):""}" placeholder="?" aria-label="Quantidade"></td><td><select class="cell l" data-u="${ix}" aria-label="Unidade">${x.okUns.map(u=>`<option ${u===x.un?"selected":""}>${u}</option>`).join("")}</select></td>
+        <td class="n">${brl(l.pu)}/${esc(l.base||"")}</td><td class="n"><b>${brl(l.custo)}</b></td></tr>`}).join("")}
+      </tbody></table></div>
+      <div class="kpis" style="margin:0">
+        <div class="kpi"><div class="l">Custo da receita</div><div class="v">${brl(cr)}</div><div class="s">ingredientes ${brl(custo)} + ${nf(perdas,1)}% de perdas</div></div>
+        <div class="kpi"><div class="l">Custo por porção</div><div class="v">${brl(cr/porc)}</div><div class="s">${nf(porc)} porção(ões)</div></div>
+        <div class="kpi"><div class="l">Preço sugerido</div><div class="v">${brl(cr*k.mkA)}</div><div class="s">markup ${nf(k.mkA,2)}×</div></div>
+        ${preco?`<div class="kpi"><div class="l">Lucro no seu preço</div><div class="v" style="color:${lucro<0?"var(--bad)":"var(--good)"}">${pct(lucro/preco)}</div><div class="s">${brl(lucro)} por receita</div></div>`:""}
+      </div>
+      ${out.observacoes?`<p class="small muted">${esc(out.observacoes)}</p>`:""}
+      <p class="small muted">Insumos marcados como novos entram no cadastro com o preço sugerido para Tangará da Serra. Confira esses preços e as quantidades antes de vender.</p>
+    </div>`;
+    $("#ia_out",m).querySelectorAll("[data-on]").forEach(c=>c.onchange=()=>{itens[+c.dataset.on].on=c.checked;keepForm();draw()});
+    $("#ia_out",m).querySelectorAll("[data-q]").forEach(i=>i.onchange=()=>{itens[+i.dataset.q].qtd=pnum(i.value);keepForm();draw()});
+    $("#ia_out",m).querySelectorAll("[data-u]").forEach(i=>i.onchange=()=>{itens[+i.dataset.u].un=i.value;keepForm();draw()});
+  };
+  const keepForm=()=>{out.nome=$("#pv_nome",m).value;out.categoria=$("#pv_cat",m).value;out.rendimento_kg=pnum($("#pv_rend",m).value);out.porcoes=pnum($("#pv_porc",m).value)||1;out.preco_venda=pnum($("#pv_preco",m).value)};
+  draw();
+  const go=$("#ia_go",m);go.textContent="Montar de novo";
+  let ok=$("#ia_ok",m);if(!ok){ok=document.createElement("button");ok.className="btn pri";ok.id="ia_ok";ok.textContent="Criar ficha";go.after(ok)}
+  ok.onclick=()=>{
+    keepForm();
+    let nextId=Math.max(0,...S.insumos.map(x=>x.id));let criados=0;
+    const fItens=itens.filter(x=>x.on&&x.qtd>0).map(x=>{
+      if(x.tipo!=="novo")return{ref:x.ref,qtd:x.qtd,un:x.un};
+      const ja=S.insumos.find(i=>norm(i.nome)===norm(x.novo.nome));if(ja)return{ref:ja.id,qtd:x.qtd,un:x.un};
+      const ni={id:++nextId,...x.novo,atualizado:today(),fonte:"sugestao"};S.insumos.push(ni);criados++;return{ref:ni.id,qtd:x.qtd,un:x.un};
+    });
+    const f={cod:proximoCod(),nome:(out.nome||"Novo produto").trim(),cat:out.categoria||"Pratos individuais",rend:+out.rendimento_kg||1,porcoes:+out.porcoes||1,
+      perdas:Math.max(0,Math.min(30,+out.perdas_pct||0)),preco:+out.preco_venda||0,preparo:out.modo_preparo||"",itens:fItens};
+    S.fichas.push(f);if(criados)save("insumos");save("fichas");iaRascunho="";close();renderNav();go_ficha(f.cod);
+    toast(`Ficha ${f.cod} criada${criados?` com ${criados} insumo(s) novo(s)`:""}.`);
+  };
+}
+function go_ficha(c){go("ficha",c)}
+function proximoCod(){const n=Math.max(0,...S.fichas.map(f=>parseInt(f.cod.slice(3))||0))+1;return"FT."+String(n).padStart(3,"0")}
+function novaFicha(){const f={cod:proximoCod(),nome:"Nova preparação",cat:"Pratos individuais",rend:1,porcoes:1,perdas:0,preco:0,itens:[]};S.fichas.push(f);save("fichas");renderNav();go("ficha",f.cod)}
+function refOptions(){
+  return S.insumos.map(i=>`<option value="${i.id} · ${esc(i.nome)}"></option>`).join("")+S.fichas.map(f=>`<option value="${f.cod} · ${esc(f.nome)}"></option>`).join("");
+}
+function parseRef(v){
+  v=String(v||"").trim();const m=v.match(/^(FT\.\d+|\d+)\s*·/);let code=m?m[1]:v;
+  if(/^FT\.\d+$/i.test(code))return fichaByCod(code.toUpperCase())?code.toUpperCase():null;
+  if(/^\d+$/.test(code))return insById(code)?Number(code):null;
+  const n=norm(v);const i=S.insumos.find(x=>norm(x.nome)===n);if(i)return i.id;const f=S.fichas.find(x=>norm(x.nome)===n);return f?f.cod:null;
+}
+R.ficha=el=>{
+  const f=fichaByCod(fichaAberta);if(!f){go("fichas");return}
+  const cats=[...new Set([...S.cfg.categorias,...S.fichas.map(x=>x.cat)])];
+  const k=cfgCalc();
+  el.innerHTML=`<div class="head"><div><button class="btn sm" id="back">← Fichas</button> <span class="muted small">${f.cod}</span><h1 style="margin-top:6px">${esc(f.nome)}</h1></div>
+   <div class="tools"><button class="btn" id="verCard">Ver no cardápio</button><button class="btn" id="dup">Duplicar</button><button class="btn danger" id="del">Excluir</button></div></div>
+  <div class="fgrid">
+   <div class="grid">
+    <div class="card form">
+      <label class="wide" for="ff_nome">Nome da preparação<input class="f" id="ff_nome" data-k="nome" value="${esc(f.nome)}"></label>
+      <label for="ff_cat">Categoria<select class="f" id="ff_cat" data-k="cat">${cats.map(c=>`<option ${c===f.cat?"selected":""}>${esc(c)}</option>`).join("")}</select></label>
+      <label for="ff_rend">Rendimento (kg)<input class="f" id="ff_rend" data-k="rend" inputmode="decimal" value="${nf(f.rend)}"></label>
+      <label for="ff_porc">Porções<input class="f" id="ff_porc" data-k="porcoes" inputmode="decimal" value="${nf(f.porcoes)}"></label>
+      <label for="ff_perd">Perdas (%)<input class="f" id="ff_perd" data-k="perdas" inputmode="decimal" value="${nf(f.perdas,2)}"></label>
+      <label for="ff_preco">Preço de venda da receita (R$)<input class="f" id="ff_preco" data-k="preco" inputmode="decimal" value="${f.preco?nf(f.preco,2):""}" placeholder="vazio = não vendida"></label>
+      <label class="wide" for="ff_prep">Modo de preparo<textarea class="f" id="ff_prep" data-k="preparo" rows="${f.preparo?4:2}" placeholder="Opcional">${esc(f.preparo||"")}</textarea></label>
+    </div>
+    <div class="card grid">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap"><h3>Ingredientes</h3><span class="small muted">Digite parte do nome: insumos e outras fichas (sub-receitas) aparecem na lista.</span></div>
+      <datalist id="refs">${refOptions()}</datalist>
+      <div class="tablewrap" style="border:0"><table><thead><tr><th>Ingrediente</th><th class="n">Qtde líquida</th><th>Unid.</th><th class="n">FC</th><th class="n">Qtde bruta</th><th class="n">R$/base</th><th class="n">Custo</th><th class="n">%</th><th></th></tr></thead>
+      <tbody id="ing"></tbody><tfoot><tr><td colspan="6">Total dos ingredientes</td><td class="n" id="tot"></td><td></td><td></td></tr></tfoot></table></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+        <input class="f" list="refs" id="newref" placeholder="Adicionar ingrediente…" style="max-width:360px" aria-label="Adicionar ingrediente">
+        <button class="btn pri" id="addIng">Adicionar</button>
+        <button class="btn ai" id="newIns">Cadastrar insumo novo (com sugestão de preço)</button>
+      </div>
+    </div>
+   </div>
+   <div class="card sum" id="sum"></div>
+  </div>`;
+  const ing=$("#ing",el);
+  const drawIng=()=>{
+    resetMemo();const r=calcFicha(f);
+    ing.innerHTML=f.itens.map((it,ix)=>{const l=r.linhas[ix];const us=unitsFor(it.ref);
+      const nome=typeof it.ref==="string"?`<span class="pill n">${it.ref}</span> ${esc(l.nome)}`:esc(l.nome);
+      return`<tr data-ix="${ix}"><td style="min-width:220px">${l.ok?nome:`<span style="color:var(--bad)">${esc(l.nome)}</span>`}</td>
+      <td class="n" style="width:100px"><input class="cell" data-k="qtd" value="${nf(it.qtd,4)}" aria-label="Quantidade"></td>
+      <td><select class="cell l" data-k="un" aria-label="Unidade">${(us.includes(it.un)?us:[it.un,...us]).map(u=>`<option ${u===it.un?"selected":""}>${u}</option>`).join("")}</select></td>
+      <td class="n">${l.sub?"–":nf(l.fc,3)}</td><td class="n">${nf(l.bruta,4)} ${l.un}</td><td class="n">${brl(l.pu)}</td><td class="n"><b>${brl(l.custo)}</b></td>
+      <td class="n small muted">${r.custo?pct(l.custo/r.custo,0):""}</td>
+      <td style="white-space:nowrap">${typeof it.ref==="number"?`<button class="btn sm" data-a="ins" title="Editar insumo">R$</button> `:`<button class="btn sm" data-a="sub" title="Abrir sub-receita">Abrir</button> `}<button class="btn sm danger" data-a="rm" aria-label="Remover">✕</button></td></tr>`}).join("")||`<tr><td colspan="9" class="muted">Nenhum ingrediente ainda.</td></tr>`;
+    $("#tot",el).textContent=brl(r.custo);
+    drawSum(r);
+  };
+  const drawSum=r=>{
+    const p=r.preco;
+    const seg=p?[[r.custoReceita/p,"#d2603f","CMV"],[r.fixos/p,"#bba995","Fixos"],[r.varr/p,"#e6a43d","Variáveis"],[Math.max(0,r.lucro)/p,"#8fc77a","Lucro"]]:[];
+    $("#sum",el).innerHTML=`<h3>Custos e preço</h3>
+     <div class="row"><span>Ingredientes</span><span>${brl(r.custo)}</span></div>
+     <div class="row"><span>+ Perdas (${nf(f.perdas,2)}%)</span><span>${brl(r.custoReceita-r.custo)}</span></div>
+     <div class="row big"><span>Custo da receita</span><span>${brl(r.custoReceita)}</span></div>
+     <div class="row"><span>Custo por porção</span><span>${brl(r.porcao)}</span></div>
+     <div class="row"><span>Custo por kg</span><span>${brl(r.kg)}</span></div>
+     <div class="row"><span>Preço sugerido (markup ${nf(k.mkA,2)}×)</span><span><b>${brl(r.sugerido)}</b></span></div>
+     ${p?`<div class="row"><span>Custos fixos (${pct(k.pFix)})</span><span>${brl(r.fixos)}</span></div>
+     <div class="row"><span>Custos variáveis (${pct(k.pVarR,2)})</span><span>${brl(r.varr)}</span></div>
+     <div class="row big"><span>Lucro</span><span style="color:${r.lucro<0?"#ff9a8a":"#a6dc8f"}">${brl(r.lucro)} · ${pct(r.pLucro)}</span></div>
+     <div class="row"><span>% custo (CMV)</span><span>${pct(r.pCusto)}</span></div>
+     <div class="row"><span>Margem de contribuição</span><span>${brl(r.margem)} · ${pct(r.pMargem)}</span></div>
+     <div class="bar" aria-hidden="true">${seg.map(s=>`<span style="width:${Math.max(0,s[0]*100)}%;background:${s[1]}"></span>`).join("")}</div>
+     <div class="legend">${seg.map(s=>`<span><i style="background:${s[1]}"></i>${s[2]} ${pct(s[0],0)}</span>`).join("")}</div>
+     <div style="margin-top:6px">${statusFicha(r)}</div>`:`<p class="small muted">Sem preço de venda: tratada como preparação base (sub-receita).</p>`}
+     <div style="display:grid;gap:6px;margin-top:8px">
+     ${r.sugerido&&Math.abs((f.preco||0)-Math.ceil(r.sugerido*10)/10)>0.001?`<button class="btn sm" id="useSug">Usar preço sugerido (${brl(Math.ceil(r.sugerido*10)/10)})</button>`:""}
+     ${f.precoAnterior!=null?`<button class="btn sm" id="undoSug">Desfazer: voltar para ${f.precoAnterior?brl(f.precoAnterior):"sem preço"}</button>`:""}
+     </div>
+     ${usosFicha(f.cod).length?`<p class="small muted">Usada em: ${usosFicha(f.cod).map(x=>esc(x.nome)).join(", ")}</p>`:""}`;
+    const setPreco=v=>{f.preco=v;$("#ff_preco",el).value=v?nf(v,2):"";save("fichas");drawIng()};
+    const undo=()=>{if(f.precoAnterior==null)return;const v=f.precoAnterior;delete f.precoAnterior;setPreco(v);toast("Preço anterior restaurado: "+(v?brl(v):"sem preço"))};
+    const us=$("#useSug",el);if(us)us.onclick=()=>{const antes=+f.preco||0;if(f.precoAnterior==null)f.precoAnterior=antes;setPreco(Math.ceil(r.sugerido*10)/10);
+      toast(`Preço alterado de ${antes?brl(antes):"sem preço"} para ${brl(f.preco)}.`,8000,{label:"Desfazer",fn:undo})};
+    const ud=$("#undoSug",el);if(ud)ud.onclick=undo;
+  };
+  drawIng();
+  el.querySelector(".form").addEventListener("change",e=>{
+    const t=e.target,kk=t.dataset.k;if(!kk)return;
+    f[kk]=(kk==="nome"||kk==="cat"||kk==="preparo")?t.value.trim():pnum(t.value);
+    if(kk==="porcoes"&&!f.porcoes)f.porcoes=1;
+    if(kk==="preco")delete f.precoAnterior;
+    save("fichas");if(kk==="nome")$("h1",el).textContent=f.nome;drawIng();
+  });
+  ing.addEventListener("change",e=>{const t=e.target,tr=t.closest("tr");if(!tr)return;const it=f.itens[+tr.dataset.ix];
+    it[t.dataset.k]=t.dataset.k==="un"?t.value:pnum(t.value);save("fichas");drawIng()});
+  ing.addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;const ix=+b.closest("tr").dataset.ix,it=f.itens[ix];
+    if(b.dataset.a==="rm"){f.itens.splice(ix,1);save("fichas");drawIng()}
+    else if(b.dataset.a==="ins")editarInsumo(insById(it.ref),()=>drawIng());
+    else if(b.dataset.a==="sub")go("ficha",it.ref)});
+  const add=()=>{const v=$("#newref",el).value;const ref=parseRef(v);
+    if(ref==null){toast("Ingrediente não encontrado. Cadastre como insumo novo.");return}
+    if(ref===f.cod){toast("Uma ficha não pode conter ela mesma.");return}
+    f.itens.push({ref,qtd:0,un:unitsFor(ref)[0]});save("fichas");$("#newref",el).value="";drawIng();
+    const inputs=ing.querySelectorAll('input[data-k="qtd"]');inputs[inputs.length-1]?.focus();inputs[inputs.length-1]?.select()};
+  $("#addIng",el).onclick=add;$("#newref",el).addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();add()}});
+  $("#newIns",el).onclick=()=>editarInsumo(null,nd=>{f.itens.push({ref:nd.id,qtd:0,un:unitsFor(nd.id)[0]});save("fichas");$("#refs",el).innerHTML=refOptions();drawIng();renderNav()});
+  $("#back",el).onclick=()=>go("fichas");
+  $("#verCard",el).onclick=()=>{cardHL=f.cod;cQ="";if(!(+f.preco>0))toast("Esta ficha ainda não tem preço de venda. Digite o preço na linha destacada.",5000);go("cardapio")};
+  $("#dup",el).onclick=()=>{const n={...JSON.parse(JSON.stringify(f)),cod:proximoCod(),nome:f.nome+" (cópia)"};S.fichas.push(n);save("fichas");renderNav();go("ficha",n.cod)};
+  $("#del",el).onclick=()=>{const u=usosFicha(f.cod);if(u.length){toast("Esta ficha é usada em: "+u.map(x=>x.nome).join(", "));return}
+    confirmar(`Excluir a ficha <b>${esc(f.nome)}</b>?`,()=>{S.fichas=S.fichas.filter(x=>x!==f);save("fichas");renderNav();go("fichas")})};
+};
+
+/* ================= CARDÁPIO ================= */
+let cSort={k:"cat",d:1},cQ="",cardHL=null;
+R.cardapio=el=>{
+  const k=cfgCalc();
+  el.innerHTML=`<div class="head"><div><h1>Cardápio e preços</h1><p>Preparações vendidas com custo, preço, lucro, margem e simulação de vendas. Edite preço e número de vendas direto na tabela.</p></div>
+   <div class="tools"><label class="small" for="dtx">Taxa do delivery (%)</label><input class="f" id="dtx" style="width:80px" inputmode="decimal" value="${nf(S.cfg.deliveryTaxa,2)}">
+   <input class="f search" id="cq" placeholder="Buscar preparação" value="${esc(cQ)}" aria-label="Buscar preparação">
+   <label class="small"><input type="checkbox" id="soPreco" ${cardHL&&!(+fichaByCod(cardHL)?.preco>0)?"":"checked"}> Só com preço</label></div></div>
+   <div class="kpis" id="ck"></div><p class="small" id="ocultas" style="margin:-8px 0 12px"></p>
+   <div class="tablewrap"><table><thead><tr>
+    <th class="sort" data-k="nome">Preparação</th><th class="sort" data-k="cat">Categoria</th><th class="n sort" data-k="porcao">Custo/porção</th><th class="n sort" data-k="custoReceita">Custo receita</th><th class="n">Preço</th><th class="n sort" data-k="sugerido">Sugerido</th><th class="n sort" data-k="pLucro">% Lucro</th><th class="n sort" data-k="pMargem">Margem</th><th class="n sort" data-k="pCusto">% CMV</th><th class="n">Vendas/mês</th><th class="n sort" data-k="fat">Faturamento</th><th class="n sort" data-k="luc">Lucro</th><th class="n">Preço delivery</th></tr></thead><tbody id="tb"></tbody></table></div>`;
+  const draw=()=>{
+    const so=$("#soPreco",el).checked,T=S.cfg.deliveryTaxa||0;
+    const q=norm(cQ);const ocultas=so?S.fichas.filter(f=>!(+f.preco>0)).length:0;
+    let rows=S.fichas.filter(f=>(!so||+f.preco>0)&&(!q||norm(f.nome).includes(q)||norm(f.cod).includes(q))).map(f=>{const r=calcFicha(f);const v=+S.cfg.simulador[f.cod]||0;return{f,r,nome:f.nome,cat:f.cat,v,fat:v*r.preco,luc:v*r.lucro,...r}});
+    rows.sort((a,b)=>{const va=a[cSort.k],vb=b[cSort.k];return(typeof va==="string"?va.localeCompare(vb,"pt")||a.nome.localeCompare(b.nome,"pt"):(isFinite(va)?va:-1e9)-(isFinite(vb)?vb:-1e9))*cSort.d});
+    $("#ocultas",el).innerHTML=ocultas?`<span class="muted">${ocultas} preparação(ões) sem preço de venda não aparecem (receitas base e fichas novas sem preço).</span> <a href="#" id="mostrar">Mostrar todas</a>`:"";
+    const ms=$("#mostrar",el);if(ms)ms.onclick=e=>{e.preventDefault();$("#soPreco",el).checked=false;draw()};
+    $("#tb",el).innerHTML=rows.map(x=>`<tr data-f="${x.f.cod}" class="${x.f.cod===cardHL?"hl":""}"><td><a href="#" data-open="${x.f.cod}">${esc(x.nome)}</a></td><td class="small">${esc(x.cat)}</td><td class="n">${brl(x.porcao)}</td><td class="n">${brl(x.custoReceita)}</td>
+      <td class="n" style="width:105px"><input class="cell" data-k="preco" value="${x.preco?nf(x.preco,2):""}" aria-label="Preço"></td><td class="n muted">${brl(x.sugerido)}</td>
+      <td class="n">${x.preco?`<span class="pill ${x.pLucro<0?"bad":x.pLucro<k.L?"warn":"good"}">${pct(x.pLucro)}</span>`:"–"}</td><td class="n">${pct(x.pMargem)}</td><td class="n">${pct(x.pCusto)}</td>
+      <td class="n" style="width:90px"><input class="cell" data-k="vendas" value="${x.v||""}" aria-label="Vendas por mês"></td><td class="n">${x.v?brl(x.fat):""}</td><td class="n">${x.v?brl(x.luc):""}</td><td class="n">${x.preco?brl(x.preco*100/(100-T)):""}</td></tr>`).join("");
+    const tf=rows.reduce((a,x)=>a+x.fat,0),tl=rows.reduce((a,x)=>a+x.luc,0),m=medias();
+    $("#ck",el).innerHTML=`<div class="kpi"><div class="l">Preparações listadas</div><div class="v">${rows.length}</div></div>
+      <div class="kpi"><div class="l">Lucro médio</div><div class="v">${pct(m.lucro)}</div><div class="s">meta ${pct(k.L,0)}</div></div>
+      <div class="kpi"><div class="l">Faturamento simulado</div><div class="v">${brl(tf)}</div><div class="s">com as vendas/mês informadas</div></div>
+      <div class="kpi"><div class="l">Lucro simulado</div><div class="v">${brl(tl)}</div><div class="s">${tf?pct(tl/tf):"–"} do simulado</div></div>`;
+  };
+  draw();
+  if(cardHL){const tr=$(`#tb tr[data-f="${cardHL}"]`,el);if(tr){tr.scrollIntoView({block:"center"});const i=$('input[data-k="preco"]',tr);if(i&&!i.value)i.focus()}cardHL=null}
+  $("#cq",el).oninput=e=>{cQ=e.target.value;draw()};
+  $("#soPreco",el).onchange=draw;
+  $("#dtx",el).onchange=e=>{S.cfg.deliveryTaxa=Math.min(99,pnum(e.target.value));save("cfg");draw()};
+  el.querySelectorAll("th.sort").forEach(th=>th.onclick=()=>{cSort={k:th.dataset.k,d:cSort.k===th.dataset.k?-cSort.d:1};draw()});
+  $("#tb",el).addEventListener("change",e=>{const t=e.target,f=fichaByCod(t.closest("tr").dataset.f);
+    if(t.dataset.k==="preco"){f.preco=pnum(t.value);save("fichas")}else{const v=pnum(t.value);if(v)S.cfg.simulador[f.cod]=v;else delete S.cfg.simulador[f.cod];save("cfg")}
+    resetMemo();draw()});
+  $("#tb",el).addEventListener("click",e=>{const a=e.target.closest("[data-open]");if(a){e.preventDefault();go("ficha",a.dataset.open)}});
+};
+
+/* ================= BEBIDAS ================= */
+R.bebidas=el=>{
+  const k=cfgCalc();
+  el.innerHTML=`<div class="head"><div><h1>Bebidas prontas</h1><p>Bebidas compradas e revendidas (drinks preparados ficam em Fichas técnicas). Custos variáveis de bebidas: ${pct(k.pVarB,2)} · markup ${nf(k.mkB,2)}×.</p></div>
+   <div class="tools"><button class="btn ai" id="sugB">Sugerir custos (Tangará da Serra)</button><button class="btn pri" id="addB">Nova bebida</button></div></div>
+   <div class="tablewrap"><table><thead><tr><th>Bebida</th><th class="n">Valor pago</th><th class="n">Preço de venda</th><th class="n">Sugerido</th><th class="n">Custos fixos</th><th class="n">C. variáveis</th><th class="n">Lucro</th><th class="n">% Lucro</th><th class="n">Margem</th><th></th></tr></thead><tbody id="tb"></tbody></table></div>`;
+  const draw=()=>{$("#tb",el).innerHTML=S.cfg.bebidas.map((b,ix)=>{const fx=b.preco*k.pFix,vr=b.preco*k.pVarB,l=b.preco-(b.custo+fx+vr),mg=b.preco-(b.custo+vr);
+    return`<tr data-ix="${ix}"><td style="min-width:220px"><input class="cell l" data-k="nome" value="${esc(b.nome)}" aria-label="Bebida"></td>
+    <td class="n" style="width:100px"><input class="cell" data-k="custo" value="${nf(b.custo,2)}" aria-label="Valor pago"></td>
+    <td class="n" style="width:100px"><input class="cell" data-k="preco" value="${nf(b.preco,2)}" aria-label="Preço"></td>
+    <td class="n muted">${brl(b.custo*k.mkB)}</td><td class="n">${brl(fx)}</td><td class="n">${brl(vr)}</td><td class="n">${brl(l)}</td>
+    <td class="n">${b.preco?`<span class="pill ${l<0?"bad":l/b.preco<k.L?"warn":"good"}">${pct(l/b.preco)}</span>`:"–"}</td><td class="n">${b.preco?pct(mg/b.preco):"–"}</td>
+    <td><button class="btn sm danger" data-rm="${ix}" aria-label="Remover">✕</button></td></tr>`}).join("")};
+  draw();
+  $("#tb",el).addEventListener("change",e=>{const t=e.target,b=S.cfg.bebidas[+t.closest("tr").dataset.ix];b[t.dataset.k]=t.dataset.k==="nome"?t.value:pnum(t.value);save("cfg");draw()});
+  $("#tb",el).addEventListener("click",e=>{const b=e.target.closest("[data-rm]");if(!b)return;const it=S.cfg.bebidas[+b.dataset.rm];confirmar(`Remover <b>${esc(it.nome)}</b>?`,()=>{S.cfg.bebidas.splice(+b.dataset.rm,1);save("cfg");draw();renderNav()})});
+  $("#addB",el).onclick=()=>{S.cfg.bebidas.unshift({nome:"Nova bebida",custo:0,preco:0});save("cfg");draw();renderNav();$("#tb input",el).select()};
+  $("#sugB",el).onclick=async()=>{
+    const bt=$("#sugB",el);bt.disabled=true;bt.textContent="Consultando…";
+    try{const lista=S.cfg.bebidas.slice(0,40).map(b=>({nome:b.nome,qtd:1,un:"un",preco:b.custo}));const out=[];
+      for(let i=0;i<lista.length;i+=20)out.push(...await sugerirPrecos(lista.slice(i,i+20)));
+      modal(`<h2>Custo de compra sugerido · Tangará da Serra</h2><p class="small muted">Estimativas do Claude, sem consulta a sites em tempo real. Marque o que quer aplicar.</p>
+      <div class="tablewrap"><table><thead><tr><th></th><th>Bebida</th><th class="n">Atual</th><th class="n">Sugerido</th><th>Onde</th></tr></thead><tbody>
+      ${S.cfg.bebidas.slice(0,40).map((b,ix)=>{const s=out.find(o=>norm(o.nome)===norm(b.nome))||out[ix];const v=s?s.preco_embalagem/(s.qtd_embalagem||1):NaN;
+        return`<tr><td>${isFinite(v)?`<input type="checkbox" class="bc" data-ix="${ix}" data-v="${v}" aria-label="Aplicar">`:""}</td><td>${esc(b.nome)}</td><td class="n">${brl(b.custo)}</td><td class="n">${brl(v)}</td><td class="small">${esc(s?.onde_comprar||"")}</td></tr>`}).join("")}</tbody></table></div>
+      <div class="actions"><button class="btn" data-close>Fechar</button><button class="btn pri" id="bok">Aplicar marcados</button></div>`,{wide:true,onMount:(m,close)=>{$("#bok",m).onclick=()=>{m.querySelectorAll(".bc:checked").forEach(c=>S.cfg.bebidas[+c.dataset.ix].custo=+(+c.dataset.v).toFixed(2));save("cfg");close();draw()}}});
+    }catch(e){toast(e.message)}finally{bt.disabled=false;bt.textContent="Sugerir custos (Tangará da Serra)"}
+  };
+};
+
+/* ================= CUSTOS ================= */
+R.custos=el=>{
+  const meses=["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
+  const draw=()=>{
+    const k=cfgCalc(),m=medias();const pe=m.margem>0?k.fixos/m.margem:NaN;
+    el.innerHTML=`<div class="head"><div><h1>Custos e faturamento</h1><p>Estes números definem o markup, o preço sugerido e o lucro de todas as fichas.</p></div></div>
+    <div class="kpis">
+      <div class="kpi"><div class="l">Custos fixos / mês</div><div class="v">${brl(k.fixos)}</div><div class="s">${pct(k.pFix)} do faturamento médio</div></div>
+      <div class="kpi"><div class="l">Faturamento médio</div><div class="v">${brl(k.fatMedia)}</div><div class="s">ano: ${brl(k.fatTotal)}</div></div>
+      <div class="kpi"><div class="l">Markup alimentos</div><div class="v">${nf(k.mkA,3)}×</div><div class="s">bebidas ${nf(k.mkB,3)}×</div></div>
+      <div class="kpi"><div class="l">CMV máximo p/ meta</div><div class="v">${pct(k.custoMax)}</div><div class="s">praticado ${pct(m.custo)}</div></div>
+      <div class="kpi"><div class="l">Ponto de equilíbrio</div><div class="v">${brl(pe)}</div><div class="s">meta ${brl(pe/(1-k.L))}</div></div>
+    </div>
+    <div class="two">
+      <div class="card grid"><div style="display:flex;justify-content:space-between;align-items:center"><h3>Custos fixos mensais</h3><button class="btn sm" id="addCF">Adicionar</button></div>
+        <div class="tablewrap" style="border:0;max-height:560px"><table><thead><tr><th>Item</th><th class="n">R$ / mês</th><th></th></tr></thead><tbody id="cf">
+        ${S.cfg.custosFixos.map((c,ix)=>`<tr data-ix="${ix}"><td><input class="cell l" data-k="nome" value="${esc(c.nome)}" aria-label="Item"></td><td class="n" style="width:130px"><input class="cell" data-k="valor" value="${c.valor?nf(c.valor,2):""}" aria-label="Valor"></td><td><button class="btn sm danger" data-rm="${ix}" aria-label="Remover">✕</button></td></tr>`).join("")}
+        </tbody><tfoot><tr><td>Total</td><td class="n">${brl(k.fixos)}</td><td></td></tr></tfoot></table></div></div>
+      <div class="grid">
+        <div class="card grid"><h3>Custos variáveis (% sobre a venda)</h3>
+          <div class="two" style="gap:10px">
+          ${[["varRef","Refeições",k.pVarR],["varBeb","Bebidas",k.pVarB]].map(([key,lab,tot])=>`<div><b class="small">${lab} · ${pct(tot,2)}</b><table><tbody>${S.cfg[key].map((v,ix)=>`<tr><td class="small">${esc(v.nome)}</td><td class="n" style="width:80px"><input class="cell" data-var="${key}" data-ix="${ix}" value="${nf(v.valor,2)}" aria-label="${esc(v.nome)}"></td></tr>`).join("")}</tbody></table></div>`).join("")}
+          </div>
+          <label class="small" for="luc"><b>Lucro desejado (%)</b> <input class="f" id="luc" style="width:90px" inputmode="decimal" value="${nf(k.L*100,2)}"></label>
+        </div>
+        <div class="card grid"><h3>Faturamento mensal</h3>
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px">${meses.map((mm,ix)=>`<label class="small" for="fm${ix}">${mm}<input class="f" id="fm${ix}" data-fat="${ix}" inputmode="decimal" value="${S.cfg.faturamento[ix]?nf(S.cfg.faturamento[ix],2):""}"></label>`).join("")}</div>
+        </div>
+      </div>
+    </div>`;
+    el.querySelectorAll("#cf input").forEach(i=>i.onchange=()=>{const c=S.cfg.custosFixos[+i.closest("tr").dataset.ix];c[i.dataset.k]=i.dataset.k==="nome"?i.value:pnum(i.value);save("cfg");draw()});
+    el.querySelectorAll("[data-rm]").forEach(b=>b.onclick=()=>{S.cfg.custosFixos.splice(+b.dataset.rm,1);save("cfg");draw()});
+    $("#addCF",el).onclick=()=>{S.cfg.custosFixos.push({nome:"Novo custo",valor:0});save("cfg");draw()};
+    el.querySelectorAll("[data-var]").forEach(i=>i.onchange=()=>{S.cfg[i.dataset.var][+i.dataset.ix].valor=pnum(i.value);save("cfg");draw()});
+    el.querySelectorAll("[data-fat]").forEach(i=>i.onchange=()=>{S.cfg.faturamento[+i.dataset.fat]=pnum(i.value);save("cfg");draw()});
+    $("#luc",el).onchange=e=>{S.cfg.lucroDesejado=pnum(e.target.value)/100;save("cfg");draw()};
+  };
+  draw();
+};
+
+/* ================= PRODUÇÃO ================= */
+R.producao=el=>{
+  const draw=()=>{
+    const acc=new Map();let custoTot=0;
+    for(const d of S.cfg.demanda){const f=fichaByCod(d.cod);if(!f||!d.qtd)continue;explodir(f,d.qtd*(f.rend/(f.porcoes||1)),acc)}
+    const lista=[...acc.values()].sort((a,b)=>a.i.nome.localeCompare(b.i.nome,"pt"));
+    lista.forEach(x=>{x.custo=x.q*precoUnit(x.i);custoTot+=x.custo});
+    el.innerHTML=`<div class="head"><div><h1>Produção e compras</h1><p>Informe quantas porções vai produzir de cada preparação. O app abre as sub-receitas e soma a lista de compras por insumo (quantidade bruta, já com FC).</p></div>
+     <div class="tools"><button class="btn" id="copy">Copiar lista de compras</button><button class="btn danger" id="clr">Limpar</button></div></div>
+    <div class="two">
+      <div class="card grid"><h3>Plano de produção</h3>
+        <datalist id="fl">${S.fichas.map(f=>`<option value="${f.cod} · ${esc(f.nome)}"></option>`).join("")}</datalist>
+        <table><thead><tr><th>Preparação</th><th class="n">Porções</th><th class="n">Kg</th><th></th></tr></thead><tbody>
+        ${S.cfg.demanda.map((d,ix)=>{const f=fichaByCod(d.cod);return`<tr><td>${f?esc(f.nome):`<span style="color:var(--bad)">${d.cod} não encontrada</span>`}</td><td class="n" style="width:100px"><input class="cell" data-dq="${ix}" value="${d.qtd||""}" aria-label="Porções"></td><td class="n">${f?nf((d.qtd||0)*f.rend/(f.porcoes||1),2):""}</td><td><button class="btn sm danger" data-drm="${ix}" aria-label="Remover">✕</button></td></tr>`}).join("")}
+        </tbody></table>
+        <div style="display:flex;gap:8px"><input class="f" list="fl" id="nd" placeholder="Adicionar preparação…" aria-label="Adicionar preparação"><button class="btn pri" id="addD">Adicionar</button></div>
+      </div>
+      <div class="card grid"><div style="display:flex;justify-content:space-between;align-items:baseline"><h3>Lista de compras</h3><b>${brl(custoTot)}</b></div>
+        <div class="tablewrap" style="border:0;max-height:600px"><table><thead><tr><th>Insumo</th><th class="n">Quantidade</th><th class="n">Embalagens</th><th class="n">Custo</th></tr></thead><tbody>
+        ${lista.map(x=>`<tr title="${esc([...x.de].join(", "))}"><td>${esc(x.i.nome)}</td><td class="n">${nf(x.q,3)} ${x.i.un}</td><td class="n">${x.i.qtd?nf(Math.ceil(x.q/x.i.qtd*100)/100,2):""}</td><td class="n">${brl(x.custo)}</td></tr>`).join("")||`<tr><td colspan="4" class="muted">Adicione preparações ao plano.</td></tr>`}
+        </tbody></table></div></div>
+    </div>`;
+    el.querySelectorAll("[data-dq]").forEach(i=>i.onchange=()=>{S.cfg.demanda[+i.dataset.dq].qtd=pnum(i.value);save("cfg");draw()});
+    el.querySelectorAll("[data-drm]").forEach(b=>b.onclick=()=>{S.cfg.demanda.splice(+b.dataset.drm,1);save("cfg");draw()});
+    const add=()=>{const r=parseRef($("#nd",el).value);if(typeof r!=="string"){toast("Escolha uma preparação da lista.");return}S.cfg.demanda.push({cod:r,qtd:10});save("cfg");draw()};
+    $("#addD",el).onclick=add;$("#nd",el).onkeydown=e=>{if(e.key==="Enter")add()};
+    $("#clr",el).onclick=()=>confirmar("Limpar o plano de produção?",()=>{S.cfg.demanda=[];save("cfg");draw()});
+    $("#copy",el).onclick=async()=>{const txt="LISTA DE COMPRAS – Salto das Nuvens\n"+lista.map(x=>`${x.i.nome}: ${nf(x.q,3)} ${x.i.un}`).join("\n")+`\nTotal estimado: ${brl(custoTot)}`;
+      try{await navigator.clipboard.writeText(txt);toast("Lista copiada.")}catch(e){modal(`<h3>Lista de compras</h3><textarea class="f" rows="14" readonly>${esc(txt)}</textarea><div class="actions"><button class="btn" data-close>Fechar</button></div>`)}};
+  };
+  draw();
+};
+
+/* ================= BUFFET ================= */
+R.buffet=el=>{
+  const B=S.cfg.buffet;
+  const draw=()=>{
+    const k=cfgCalc();
+    const rows=B.itens.map(it=>{const f=fichaByCod(it.cod);const ckg=f?calcFicha(f).kg:0;const cons=Math.max(0,(it.kg||0)-(it.sobra||0));return{it,f,ckg,custo:ckg*(it.kg||0),cSobra:ckg*(it.sobra||0),cons}});
+    const prod=rows.reduce((a,r)=>a+(r.it.kg||0),0),sobra=rows.reduce((a,r)=>a+(r.it.sobra||0),0),cons=rows.reduce((a,r)=>a+r.cons,0);
+    const ctot=rows.reduce((a,r)=>a+r.custo,0);
+    const ckgMed=cons?rows.reduce((a,r)=>a+r.ckg*r.cons,0)/cons:0;
+    const pSobra=prod?sobra/prod:0;
+    const sug=ckgMed*k.mkA/(1-pSobra);
+    const cpp=B.refeicoes?cons/B.refeicoes:0;
+    el.innerHTML=`<div class="head"><div><h1>Buffet por quilo</h1><p>Monte o cardápio do dia com o que foi produzido e o que sobrou. O app calcula o custo médio do quilo servido e o preço sugerido.</p></div></div>
+    <div class="kpis">
+      <div class="kpi"><div class="l">Custo médio do kg servido</div><div class="v">${brl(ckgMed)}</div></div>
+      <div class="kpi"><div class="l">Preço sugerido do kg</div><div class="v">${brl(sug)}</div><div class="s">markup ${nf(k.mkA,2)}× e sobras ${pct(pSobra)}</div></div>
+      <div class="kpi"><div class="l">Preço praticado do kg</div><div class="v">${brl(B.precoPraticado)}</div><div class="s">CMV ${B.precoPraticado?pct(ckgMed/(1-pSobra)/B.precoPraticado):"–"}</div></div>
+      <div class="kpi"><div class="l">Consumo por pessoa</div><div class="v">${nf(cpp,3)} kg</div><div class="s">${B.refeicoes||0} refeições atendidas</div></div>
+      <div class="kpi"><div class="l">Custo da produção</div><div class="v">${brl(ctot)}</div><div class="s">${nf(prod,2)} kg produzidos, ${nf(sobra,2)} kg de sobra</div></div>
+    </div>
+    <div class="card form" style="margin-bottom:14px">
+      <label for="bp">Preço praticado do kg (R$)<input class="f" id="bp" data-b="precoPraticado" inputmode="decimal" value="${nf(B.precoPraticado,2)}"></label>
+      <label for="br">Refeições atendidas<input class="f" id="br" data-b="refeicoes" inputmode="decimal" value="${B.refeicoes||""}"></label>
+      <label for="be">Expectativa de refeições<input class="f" id="be" data-b="expectativa" inputmode="decimal" value="${B.expectativa||""}"></label>
+    </div>
+    <datalist id="fl">${S.fichas.map(f=>`<option value="${f.cod} · ${esc(f.nome)}"></option>`).join("")}</datalist>
+    <div class="tablewrap"><table><thead><tr><th>Preparação</th><th>Categoria</th><th class="n">Custo/kg</th><th class="n">Produzido (kg)</th><th class="n">Sobra (kg)</th><th class="n">Custo total</th><th class="n">Custo das sobras</th><th class="n">Consumo (kg)</th><th class="n">Per capita</th><th class="n">Participação</th><th></th></tr></thead><tbody>
+    ${rows.map((r,ix)=>`<tr><td>${r.f?esc(r.f.nome):r.it.cod}</td><td class="small">${esc(r.f?.cat||"")}</td><td class="n">${brl(r.ckg)}</td>
+      <td class="n" style="width:100px"><input class="cell" data-bi="${ix}" data-k="kg" value="${nf(r.it.kg,3)}" aria-label="Produzido"></td>
+      <td class="n" style="width:100px"><input class="cell" data-bi="${ix}" data-k="sobra" value="${nf(r.it.sobra,3)}" aria-label="Sobra"></td>
+      <td class="n">${brl(r.custo)}</td><td class="n">${brl(r.cSobra)}</td><td class="n">${nf(r.cons,3)}</td><td class="n">${B.refeicoes?nf(r.cons/B.refeicoes,3):""}</td><td class="n">${cons?pct(r.cons/cons):""}</td>
+      <td><button class="btn sm danger" data-brm="${ix}" aria-label="Remover">✕</button></td></tr>`).join("")||`<tr><td colspan="11" class="muted">Adicione as preparações servidas no buffet.</td></tr>`}
+    </tbody></table></div>
+    <div style="display:flex;gap:8px;margin-top:10px;max-width:520px"><input class="f" list="fl" id="nb" placeholder="Adicionar preparação ao buffet…" aria-label="Adicionar preparação"><button class="btn pri" id="addB">Adicionar</button></div>`;
+    el.querySelectorAll("[data-b]").forEach(i=>i.onchange=()=>{B[i.dataset.b]=pnum(i.value);save("cfg");draw()});
+    el.querySelectorAll("[data-bi]").forEach(i=>i.onchange=()=>{B.itens[+i.dataset.bi][i.dataset.k]=pnum(i.value);save("cfg");draw()});
+    el.querySelectorAll("[data-brm]").forEach(b=>b.onclick=()=>{B.itens.splice(+b.dataset.brm,1);save("cfg");draw()});
+    const add=()=>{const r=parseRef($("#nb",el).value);if(typeof r!=="string"){toast("Escolha uma preparação da lista.");return}B.itens.push({cod:r,kg:1,sobra:0});save("cfg");draw()};
+    $("#addB",el).onclick=add;$("#nb",el).onkeydown=e=>{if(e.key==="Enter")add()};
+  };
+  draw();
+};
+
+/* ================= FC ================= */
+let fcQ="";
+R.fc=el=>{
+  el.innerHTML=`<div class="head"><div><h1>Tabela de fator de correção</h1><p>Referência de FC (peso bruto ÷ peso limpo) importada da planilha. Use para preencher o FC dos insumos.</p></div>
+   <div class="tools"><input class="f search" id="q" placeholder="Buscar corte ou alimento" value="${esc(fcQ)}" aria-label="Buscar"></div></div>
+   <div class="tablewrap"><table><thead><tr><th>Alimento / corte</th><th class="n">FC</th><th class="n">Aproveitamento</th></tr></thead><tbody id="tb"></tbody></table></div>`;
+  const draw=()=>{const q=norm(fcQ);$("#tb",el).innerHTML=S.cfg.fcRef.filter(r=>!q||norm(r.nome).includes(q)).map(r=>r.fc==null?`<tr><td colspan="3"><b>${esc(r.nome)}</b></td></tr>`:`<tr><td>${esc(r.nome)}</td><td class="n">${nf(r.fc,2)}</td><td class="n">${pct(1/r.fc,0)}</td></tr>`).join("")};
+  draw();$("#q",el).oninput=e=>{fcQ=e.target.value;draw()};
+};
+
+/* ================= DADOS ================= */
+R.dados=el=>{
+  el.innerHTML=`<div class="head"><div><h1>Dados e backup</h1><p>Seus dados ficam salvos ${DB?"na nuvem, no banco deste app":"somente neste navegador"}. Importados da planilha em ${fmtDate(S.cfg.importadoEm)}.</p></div></div>
+  <div class="two">
+   <div class="card grid"><h3>Exportar</h3><p class="small muted">Baixe uma cópia de segurança ou as tabelas em CSV (abre no Excel).</p>
+     <div class="tools"><button class="btn" id="exJ">Backup completo (.json)</button><button class="btn" id="exI">Insumos (.csv)</button><button class="btn" id="exF">Fichas (.csv)</button></div></div>
+   <div class="card grid"><h3>Restaurar</h3><p class="small muted">Carregue um backup .json salvo antes, ou volte aos dados originais da planilha (substitui tudo).</p>
+     <div class="tools"><label class="btn" for="imJ">Carregar backup…</label><input type="file" id="imJ" accept=".json,application/json" class="hidden">${NO_CLAUDE?"":`<button class="btn danger" id="reset">Reimportar planilha original</button>`}</div></div>
+  </div>`;
+  const dl=async(filename,data)=>{if(NO_CLAUDE){const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([data],{type:"application/octet-stream"}));a.download=filename;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1000);return}
+    let d=null;try{d=await claude.use("downloads")}catch(e){}
+    if(d){try{await d.save({filename,data});return}catch(e){if(e&&e.code==="declined")return}}
+    modal(`<h3>${esc(filename)}</h3><p class="small muted">Copie o conteúdo abaixo e salve num arquivo.</p><textarea class="f" rows="14" readonly>${esc(data)}</textarea><div class="actions"><button class="btn" data-close>Fechar</button></div>`)};
+  const csv=rows=>"﻿"+rows.map(r=>r.map(v=>{v=typeof v==="number"?String(v).replace(".",","):String(v??"");return/[;"\n]/.test(v)?`"${v.replace(/"/g,'""')}"`:v}).join(";")).join("\n");
+  $("#exJ",el).onclick=()=>dl(`cmv-salto-backup-${today()}.json`,JSON.stringify(S));
+  $("#exI",el).onclick=()=>dl(`insumos-${today()}.csv`,csv([["Código","Insumo","Valor pago","Embalagem","Unidade","FC","R$ por unidade","R$ com FC","Atualizado"],...S.insumos.map(i=>[i.id,i.nome,i.preco,i.qtd,i.un,i.fc,+precoUnit(i).toFixed(4),+precoComFC(i).toFixed(4),i.atualizado||""])]));
+  $("#exF",el).onclick=()=>{resetMemo();dl(`fichas-${today()}.csv`,csv([["Código","Preparação","Categoria","Rendimento kg","Porções","Perdas %","Custo receita","Custo porção","Custo kg","Preço","% Lucro","% CMV"],...S.fichas.map(f=>{const r=calcFicha(f);return[f.cod,f.nome,f.cat,f.rend,f.porcoes,f.perdas,+r.custoReceita.toFixed(2),+r.porcao.toFixed(2),+r.kg.toFixed(2),f.preco,isFinite(r.pLucro)?+(r.pLucro*100).toFixed(1):"",isFinite(r.pCusto)?+(r.pCusto*100).toFixed(1):""]})]))};
+  $("#imJ",el).onchange=async e=>{const file=e.target.files[0];if(!file)return;try{const d=JSON.parse(await file.text());if(!d.insumos||!d.fichas||!d.cfg)throw 0;
+    confirmar("Substituir todos os dados pelo backup?",()=>{S=d;normalizeCfg();["insumos","fichas","cfg"].forEach(save);renderNav();render();toast("Backup restaurado.")})}catch(x){toast("Arquivo de backup inválido.")}};
+  if($("#reset",el))$("#reset",el).onclick=()=>confirmar("Voltar aos dados originais da planilha? Tudo o que foi alterado no app será substituído.",async()=>{await importarPlanilha(false);normalizeCfg();renderNav();render();toast("Dados da planilha reimportados.")});
+};
+
+/* ================= login e início ================= */
+async function sha256(t){try{const b=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(t));return[...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,"0")).join("")}catch(e){return null}}
+async function start(){
+  $("#login").classList.add("hidden");$("#app").classList.remove("hidden");
+  $("#main").innerHTML=`<p class="muted">Carregando dados…</p>`;
+  try{await loadAll()}
+  catch(e){console.error(e);$("#main").innerHTML=`<div class="card grid" style="max-width:560px"><h2>Não consegui carregar os dados</h2><p class="muted small">${esc(e&&e.message||e)}</p><div><button class="btn pri" id="retry">Tentar de novo</button></div></div>`;$("#retry").onclick=()=>location.reload();return}
+  const h=(location.hash||"").slice(1);if(VIEWS.some(v=>v[0]===h))view=h;
+  renderNav();render();
+  window.addEventListener("hashchange",()=>{const h=location.hash.slice(1);if(VIEWS.some(v=>v[0]===h)&&h!==view){view=h;renderNav();render()}});
+}
+$("#loginForm").addEventListener("submit",async e=>{
+  e.preventDefault();
+  const u=$("#lu").value.trim().toLowerCase(),p=$("#lp").value;
+  const h=await sha256(u+":"+p);
+  if(!h){$("#lerr").textContent="Este navegador não permite verificar a senha. Abra o app pelo link do claude.ai.";return}
+  if(h!==LOGIN_HASH){$("#lerr").textContent="Usuário ou senha incorretos.";return}
+  try{sessionStorage.setItem("cmv_auth","1")}catch(x){}
+  start();
+});
+let authed=false;try{authed=sessionStorage.getItem("cmv_auth")==="1"}catch(e){}
+if(authed)start();
+</script>
+</body>
+</html>
