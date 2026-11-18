@@ -181,7 +181,7 @@ tfoot td{font-weight:800;border-top:2px solid var(--terra)}
   <form class="login-card" id="loginForm" autocomplete="on">
     <div class="login-head"><img src="logo.png" alt="Salto das Nuvens" width="280" height="42"><span class="eyebrow">Custos &amp; fichas técnicas</span></div>
     <h2>Entrar</h2>
-    <label for="lu">Usuário<input class="f" id="lu" name="username" autocomplete="username" required></label>
+    <input type="hidden" id="lu" name="username" autocomplete="username" value="saltodasnuvens">
     <label for="lp">Senha<input class="f" id="lp" name="password" type="password" autocomplete="current-password" required></label>
     <div class="err" id="lerr" role="alert"></div>
     <button class="btn pri" type="submit">Entrar</button>
@@ -215,7 +215,7 @@ function toast(msg,ms=2600,action){document.querySelectorAll(".toast").forEach(x
 const NO_CLAUDE=typeof window.claude==="undefined";
 if(NO_CLAUDE)document.documentElement.classList.add("sem-ia");
 if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(()=>{});
-const LOGIN_HASH="d832442941eab6f0abd843d6d2505eacb06332520bb76b23c322e38a2cc7958b";
+const LOGIN_HASH="a6b0c7116dcdd04587b1cdedb3ba8211bfe6aff6de3c773212d23bc8e93c3d84";
 let S={insumos:[],fichas:[],cfg:{}};
 let DB=null, saveMode="local";
 const DOCS={insumos:"cmv/insumos",fichas:"cmv/fichas",cfg:"cmv/config"};
@@ -254,7 +254,11 @@ async function loadAll(){
   }
   if(!DB){for(const k of Object.keys(DOCS)){const v=lsGet("cmv_"+k);if(v)got[k]=v}}
   if(!got.insumos||!got.fichas||!got.cfg){
-    if(NO_CLAUDE){await pedirBackupInicial();normalizeCfg();return}
+    if(NO_CLAUDE){
+      const d=await abrirDadosEmbutidos();
+      if(d){S=d;["insumos","fichas","cfg"].forEach(k=>lsSet("cmv_"+k,S[k]))}
+      else await pedirBackupInicial();
+      normalizeCfg();return}
     await importarPlanilha(true,got);
   }else{S.insumos=got.insumos;S.fichas=got.fichas;S.cfg=got.cfg}
   normalizeCfg();
@@ -269,6 +273,18 @@ async function importarPlanilha(onlyMissing,got={}){
     if(onlyMissing&&got[k]){S[k]=got[k];continue}
     S[k]=src[k];save(k);
   }
+}
+let SENHA=null;
+async function abrirDadosEmbutidos(){
+  if(!SENHA)return null;
+  try{
+    const r=await fetch("dados.enc.json",{cache:"no-store"});if(!r.ok)return null;
+    const e=await r.json();const b=x=>Uint8Array.from(atob(x),c=>c.charCodeAt(0));
+    const base=await crypto.subtle.importKey("raw",new TextEncoder().encode(SENHA),"PBKDF2",false,["deriveKey"]);
+    const key=await crypto.subtle.deriveKey({name:"PBKDF2",salt:b(e.salt),iterations:e.it,hash:"SHA-256"},base,{name:"AES-GCM",length:256},false,["decrypt"]);
+    const pt=await crypto.subtle.decrypt({name:"AES-GCM",iv:b(e.iv)},key,b(e.ct));
+    const d=JSON.parse(new TextDecoder().decode(pt));return d.insumos&&d.fichas&&d.cfg?d:null;
+  }catch(x){console.error(x);return null}
 }
 function pedirBackupInicial(){
   return new Promise(res=>{
@@ -436,7 +452,7 @@ function renderNav(){
    <div class="links">${GRUPOS.map(([g,vs])=>`<div class="sec">${g}</div>`+vs.map(k=>`<button class="${view===k||(view==="ficha"&&k==="fichas")?"on":""}" data-v="${k}"><span>${nome[k]}</span>${counts[k]!=null?`<span class="count">${counts[k]}</span>`:""}</button>`).join("")).join("")}</div>
    <div class="foot"><div class="status" id="saveStatus"><span class="dot ${DB||NO_CLAUDE?"":"off"}"></span>${DB?"Salvo na nuvem":NO_CLAUDE?"Salvo neste computador":"Salvo só neste navegador"}</div>
    <button class="btn sm" id="tema">Tema: ${t==="dark"?"escuro":t==="light"?"claro":"automático"}</button>
-   <div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><span>Usuário: saltodasnuvens</span><button class="btn sm" id="logout">Sair</button></div></div>`;
+   <button class="btn sm" id="logout">Sair</button></div>`;
   $("#nav").querySelectorAll("[data-v]").forEach(b=>b.onclick=()=>go(b.dataset.v));
   $("#logout").onclick=()=>{try{sessionStorage.removeItem("cmv_auth")}catch(e){}location.reload()};
   $("#tema").onclick=()=>{const n={"":"light",light:"dark",dark:""}[temaAtual()];aplicarTema(n);renderNav()};
@@ -1105,7 +1121,7 @@ R.dados=el=>{
 async function sha256(t){try{const b=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(t));return[...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,"0")).join("")}catch(e){return null}}
 async function start(){
   $("#login").classList.add("hidden");$("#app").classList.remove("hidden");
-  $("#main").innerHTML=`<p class="muted">Carregando dados…</p>`;
+  $("#main").innerHTML=`<p class="muted">${NO_CLAUDE&&!lsGet("cmv_insumos")?"Abrindo seus dados pela primeira vez…":"Carregando dados…"}</p>`;
   try{await loadAll()}
   catch(e){console.error(e);$("#main").innerHTML=`<div class="card grid" style="max-width:560px"><h2>Não consegui carregar os dados</h2><p class="muted small">${esc(e&&e.message||e)}</p><div><button class="btn pri" id="retry">Tentar de novo</button></div></div>`;$("#retry").onclick=()=>location.reload();return}
   const h=(location.hash||"").slice(1);if(VIEWS.some(v=>v[0]===h))view=h;
@@ -1114,14 +1130,15 @@ async function start(){
 }
 $("#loginForm").addEventListener("submit",async e=>{
   e.preventDefault();
-  const u=$("#lu").value.trim().toLowerCase(),p=$("#lp").value;
+  const u="saltodasnuvens",p=$("#lp").value;
   const h=await sha256(u+":"+p);
   if(!h){$("#lerr").textContent="Este navegador não permite verificar a senha. Abra o app pelo link do claude.ai.";return}
-  if(h!==LOGIN_HASH){$("#lerr").textContent="Usuário ou senha incorretos.";return}
+  if(h!==LOGIN_HASH){$("#lerr").textContent="Senha incorreta.";return}
   try{sessionStorage.setItem("cmv_auth","1")}catch(x){}
-  start();
+  SENHA=p;start();
 });
 let authed=false;try{authed=sessionStorage.getItem("cmv_auth")==="1"}catch(e){}
+if(authed&&NO_CLAUDE&&!lsGet("cmv_insumos"))authed=false;
 if(authed)start();
 </script>
 </body>
