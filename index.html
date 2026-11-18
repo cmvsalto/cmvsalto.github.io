@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <link rel="icon" href="icon-32.png">
 <link rel="apple-touch-icon" href="icon-180.png">
 <link rel="manifest" href="manifest.webmanifest">
@@ -162,14 +162,79 @@ tfoot td{font-weight:800;border-top:2px solid var(--terra)}
 .dot{width:8px;height:8px;border-radius:50%;background:var(--good)}
 .dot.busy{background:var(--sand)} .dot.off{background:var(--bad)}
 
-@media (max-width:860px){
+.mtop,.mbar,.msum{display:none}
+@media (max-width:760px){
   #app{grid-template-columns:minmax(0,1fr);grid-template-rows:auto 1fr}
-  nav{flex-direction:row;overflow-x:auto;border-right:0;border-bottom:2px solid var(--terra);align-items:stretch}
-  nav .brand{border-bottom:0;border-right:4px solid var(--sand);justify-content:center} nav .brand img{width:130px} nav .brand .eyebrow,nav .sec,nav .foot{display:none}
-  nav .links{flex-direction:row;align-items:center}
-  nav button{flex:none;min-height:44px}
-  .fgrid{grid-template-columns:1fr}
+  nav{display:none}
+  .mtop{display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--terra);color:var(--on-terra);padding:calc(10px + env(safe-area-inset-top)) 16px 9px;border-bottom:4px solid var(--sand)}
+  .mtop img{height:24px;width:auto;display:block}
+  .mtop .status{font-size:12px;opacity:.9}
+  main{padding:16px 14px calc(96px + env(safe-area-inset-bottom));-webkit-overflow-scrolling:touch}
+  .mbar{display:grid;grid-template-columns:repeat(5,1fr);position:fixed;left:0;right:0;bottom:0;background:var(--terra);border-top:3px solid var(--sand);padding-bottom:env(safe-area-inset-bottom);z-index:15}
+  .mbar button{all:unset;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-height:60px;color:var(--on-terra);font-size:11px;font-weight:700;opacity:.75;cursor:pointer;-webkit-tap-highlight-color:transparent}
+  .mbar button svg{width:23px;height:23px}
+  .mbar button.on{opacity:1;color:var(--gold-text)}
+  .mbar button:focus-visible{outline:3px solid var(--sand);outline-offset:-3px}
+  .msum{position:fixed;left:10px;right:10px;bottom:calc(70px + env(safe-area-inset-bottom));z-index:14;background:var(--sand);color:var(--sand-ink);border-radius:10px;padding:8px 12px;box-shadow:0 8px 24px rgba(0,0,0,.25);font-size:13px;font-weight:700;align-items:center;justify-content:space-between;gap:10px;cursor:pointer}
+  .msum.on{display:flex}
+  .msum b{font-family:var(--font-num);font-size:15px}
+  .msum span{display:grid;line-height:1.2}
+  .msum small{font-size:10.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;opacity:.75}
+  body.com-msum main{padding-bottom:calc(150px + env(safe-area-inset-bottom))}
+  h1{font-size:30px} h2{font-size:23px} h3{font-size:18px}
+  .head{margin-bottom:14px;padding-bottom:10px;gap:10px}
+  .head>div:first-child{width:100%}
+  .head p{font-size:14px}
+  .tools{width:100%;gap:8px}
+  .tools .search,.tools input.f{max-width:none!important;width:100%!important;flex:1 1 100%}
+  .tools .btn,.tools label.btn{flex:1 1 auto;text-align:center;justify-content:center;display:inline-flex;align-items:center}
+  .tools label.small{flex:1 1 auto}
+  .btn{min-height:44px}
+  .btn.sm{min-height:36px;padding:4px 12px}
+  input.f,select.f,textarea.f,input.cell,select.cell{font-size:16px}
+  input.cell{padding:7px 8px;border-color:var(--line);background:var(--surface)}
+  select.cell{padding:7px 6px}
+  .kpis{grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px}
+  .kpi{padding:10px 12px}
+  .kpi .v{font-size:19px}
+  .kpi .l{font-size:10.5px}
+  .two{grid-template-columns:minmax(0,1fr);gap:14px}
+  .card{padding:14px}
+  .chips{flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px;margin-right:-14px}
+  .chip{flex:none;padding:7px 12px}
+  .form{grid-template-columns:1fr 1fr;gap:10px}
+  .fgrid{grid-template-columns:minmax(0,1fr);gap:14px}
   .sum{position:static}
+  .tablewrap{overflow:visible}
+  /* tabelas viram cartões */
+  table.rt thead{display:none}
+  table.rt,table.rt tbody,table.rt tfoot,table.rt tr,table.rt td{display:block;width:100%}
+  table.rt tr{padding:10px 12px;border-bottom:1px solid var(--line)}
+  table.rt tbody tr:nth-child(even){background:transparent}
+  table.rt tbody tr:hover{background:transparent}
+  table.rt tr:last-child{border-bottom:0}
+  table.rt td{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:3px 0;border:0;text-align:right;white-space:normal;min-height:30px}
+  table.rt td::before{content:attr(data-l);font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);text-align:left;flex:none;max-width:45%}
+  table.rt td.tt{display:block;text-align:left;font-weight:700;font-size:15.5px;padding-bottom:4px}
+  table.rt td.tt::before,table.rt td.na::before,table.rt td[colspan]::before{content:none}
+  table.rt td.na{justify-content:flex-end;gap:8px;padding-top:6px}
+  table.rt td.hm{display:none}
+  table.rt td[colspan]{display:block;text-align:left}
+  table.rt td{width:auto!important}
+  table.rt td input.cell,table.rt td select.cell{width:58%;max-width:58%;flex:0 0 58%}
+  table.rt td.tt input.cell{max-width:none;width:100%;font-weight:700}
+  table.rt td:empty{display:none}
+  table.rt tr.hl{background:color-mix(in srgb,var(--sand) 30%,transparent)}
+  table.rt tfoot tr{background:var(--cell)}
+  /* janelas de baixo para cima */
+  .modal-bg{padding:0;align-items:end}
+  .modal{width:100%!important;max-height:92%;border-radius:16px 16px 0 0;padding:20px 16px calc(20px + env(safe-area-inset-bottom));border-width:2px 0 0}
+  .modal .actions{position:sticky;bottom:calc(-20px - env(safe-area-inset-bottom));background:var(--surface);padding:10px 0 4px;margin-bottom:-4px}
+  .modal .actions .btn{flex:1 1 auto}
+  .toast{bottom:calc(80px + env(safe-area-inset-bottom));width:calc(100% - 28px);justify-content:space-between}
+  .mais{display:grid;gap:6px}
+  .mais button{all:unset;display:flex;justify-content:space-between;align-items:center;padding:13px 14px;border:1.5px solid var(--line);border-radius:8px;font-weight:700;cursor:pointer}
+  .mais button.on{background:var(--sand);color:var(--sand-ink);border-color:var(--sand)}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 .sem-ia .btn.ai{display:none!important}
@@ -189,8 +254,11 @@ tfoot td{font-weight:800;border-top:2px solid var(--terra)}
 </section>
 
 <div id="app" class="hidden">
+  <header class="mtop" id="mtop"></header>
   <nav id="nav" aria-label="Módulos"></nav>
   <main id="main" tabindex="-1"></main>
+  <div class="msum" id="msum" role="button" tabindex="0" aria-label="Ver resumo de custos"></div>
+  <div class="mbar" id="mbar" role="navigation" aria-label="Módulos principais"></div>
 </div>
 <div id="modalRoot"></div>
 
@@ -222,7 +290,7 @@ const DOCS={insumos:"cmv/insumos",fichas:"cmv/fichas",cfg:"cmv/config"};
 const pending={}, writing={};
 function lsGet(k){try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}}
 function lsSet(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
-function setStatus(state,text){const el=$("#saveStatus");if(!el)return;el.innerHTML=`<span class="dot ${state}"></span>${esc(text)}`}
+function setStatus(state,text){for(const el of [$("#saveStatus"),$("#mStatus")])if(el)el.innerHTML=`<span class="dot ${state}"></span>${esc(text)}`}
 function save(key){
   lsSet("cmv_"+key,S[key]);
   if(!DB){setStatus("",NO_CLAUDE?"Salvo neste computador":"Salvo só neste navegador");return}
@@ -456,8 +524,47 @@ function renderNav(){
   $("#nav").querySelectorAll("[data-v]").forEach(b=>b.onclick=()=>go(b.dataset.v));
   $("#logout").onclick=()=>{try{sessionStorage.removeItem("cmv_auth")}catch(e){}location.reload()};
   $("#tema").onclick=()=>{const n={"":"light",light:"dark",dark:""}[temaAtual()];aplicarTema(n);renderNav()};
+  renderMobileNav();
 }
-function render(){resetMemo();const fn=R[view]||R.painel;$("#main").innerHTML="";fn($("#main"));
+const ICO={painel:'<path d="M3 13h8V3H3zM13 21h8V11h-8zM3 21h8v-6H3zM13 3v6h8V3z"/>',fichas:'<path d="M6 2h9l5 5v15H6z"/><path d="M14 2v6h6M9 13h7M9 17h7"/>',cardapio:'<path d="M4 4h16v16H4z"/><path d="M8 9h8M8 13h8M8 17h5"/>',insumos:'<path d="M3 7l9-4 9 4-9 4z"/><path d="M3 7v10l9 4 9-4V7"/>',mais:'<circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/>'};
+function renderMobileNav(){
+  const st=$("#saveStatus");
+  $("#mtop").innerHTML=`<img src="logo.png" alt="Salto das Nuvens" width="160" height="24"><div class="status" id="mStatus">${st?st.innerHTML:""}</div>`;
+  const prim=["painel","fichas","cardapio","insumos"];const atual=view==="ficha"?"fichas":view;
+  const nome={painel:"Painel",fichas:"Fichas",cardapio:"Cardápio",insumos:"Insumos",mais:"Mais"};
+  $("#mbar").innerHTML=[...prim,"mais"].map(k=>`<button data-m="${k}" class="${k===atual||(k==="mais"&&!prim.includes(atual))?"on":""}" ${k===atual?'aria-current="page"':""}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICO[k]}</svg>${nome[k]}</button>`).join("");
+  $("#mbar").querySelectorAll("[data-m]").forEach(b=>b.onclick=()=>{if(b.dataset.m==="mais")abrirMais();else go(b.dataset.m)});
+}
+function abrirMais(){
+  const nomes=Object.fromEntries(VIEWS);const t=temaAtual();
+  modal(`<h2>Mais</h2><div class="mais">${VIEWS.map(([k])=>`<button data-v="${k}" class="${view===k?"on":""}"><span>${nomes[k]}</span><span aria-hidden="true">›</span></button>`).join("")}</div>
+    <div class="actions"><button class="btn" id="mTema">Tema: ${t==="dark"?"escuro":t==="light"?"claro":"automático"}</button><button class="btn" id="mSair">Sair</button></div>`,
+  {onMount:(m,close)=>{
+    m.querySelectorAll("[data-v]").forEach(b=>b.onclick=()=>{close();go(b.dataset.v)});
+    $("#mTema",m).onclick=()=>{const n={"":"light",light:"dark",dark:""}[temaAtual()];aplicarTema(n);renderNav();$("#mTema",m).textContent="Tema: "+({light:"claro",dark:"escuro"}[n]||"automático")};
+    $("#mSair",m).onclick=()=>{try{sessionStorage.removeItem("cmv_auth")}catch(e){}location.reload()};
+  }});
+}
+/* tabelas responsivas: rótulos para o modo cartão no celular */
+const TITULOS=/^(insumo|preparação|bebida|ingrediente|item|alimento|alimento \/ corte)$/i;
+function rotularTabelas(root){
+  root.querySelectorAll("table").forEach(t=>{
+    const ths=[...t.querySelectorAll("thead th")];if(!ths.length)return;
+    t.classList.add("rt");
+    const labs=ths.map(th=>th.textContent.trim());
+    t.querySelectorAll("tbody tr, tfoot tr").forEach(tr=>{
+      if(tr.dataset.rt)return;tr.dataset.rt="1";
+      let i=0;for(const td of tr.children){const span=+td.getAttribute("colspan")||1;const l=labs[i]||"";
+        if(span===1){td.setAttribute("data-l",l);
+          if(TITULOS.test(l))td.classList.add("tt");else if(l==="Cód."||l==="")td.classList.add(l?"hm":"na");
+          if(l===""&&td.querySelector('input[type="checkbox"]'))td.classList.replace("na","tt");}
+        i+=span;}
+    });
+  });
+}
+let rtPend=false;
+new MutationObserver(()=>{if(rtPend)return;rtPend=true;requestAnimationFrame(()=>{rtPend=false;rotularTabelas(document)})}).observe(document.body,{childList:true,subtree:true});
+function render(){resetMemo();const fn=R[view]||R.painel;$("#main").innerHTML="";if(view!=="ficha"){$("#msum").classList.remove("on");document.body.classList.remove("com-msum")}fn($("#main"));
   const h1=$("#main .head h1");const g=GRUPOS.find(([,vs])=>vs.includes(view==="ficha"?"fichas":view));
   if(h1&&g&&!h1.previousElementSibling?.classList.contains("eyebrow")){const e=document.createElement("div");e.className="eyebrow";e.style.marginBottom="6px";e.textContent=view==="ficha"?"Ficha técnica":g[0];h1.before(e)}}
 const R={};
@@ -865,6 +972,9 @@ R.ficha=el=>{
      ${f.precoAnterior!=null?`<button class="btn sm" id="undoSug">Desfazer: voltar para ${f.precoAnterior?brl(f.precoAnterior):"sem preço"}</button>`:""}
      </div>
      ${usosFicha(f.cod).length?`<p class="small muted">Usada em: ${usosFicha(f.cod).map(x=>esc(x.nome)).join(", ")}</p>`:""}`;
+    const ms=$("#msum");ms.classList.add("on");document.body.classList.add("com-msum");
+    ms.innerHTML=`<span><small>Custo receita</small><b>${brl(r.custoReceita)}</b></span><span><small>Porção</small><b>${brl(r.porcao)}</b></span><span><small>${p?"Lucro":"Sugerido"}</small><b>${p?pct(r.pLucro):brl(r.sugerido)}</b></span>`;
+    ms.onclick=()=>$("#sum",el).scrollIntoView({behavior:"smooth",block:"start"});
     const setPreco=v=>{f.preco=v;$("#ff_preco",el).value=v?nf(v,2):"";save("fichas");drawIng()};
     const undo=()=>{if(f.precoAnterior==null)return;const v=f.precoAnterior;delete f.precoAnterior;setPreco(v);toast("Preço anterior restaurado: "+(v?brl(v):"sem preço"))};
     const us=$("#useSug",el);if(us)us.onclick=()=>{const antes=+f.preco||0;if(f.precoAnterior==null)f.precoAnterior=antes;setPreco(Math.ceil(r.sugerido*10)/10);
