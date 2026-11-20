@@ -237,7 +237,6 @@ tfoot td{font-weight:800;border-top:2px solid var(--terra)}
   .mais button.on{background:var(--sand);color:var(--sand-ink);border-color:var(--sand)}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
-.sem-ia .btn.ai{display:none!important}
 </style>
 </head>
 <body>
@@ -281,7 +280,6 @@ function toast(msg,ms=2600,action){document.querySelectorAll(".toast").forEach(x
 
 /* ================= estado e persistência ================= */
 const NO_CLAUDE=typeof window.claude==="undefined";
-if(NO_CLAUDE)document.documentElement.classList.add("sem-ia");
 if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(()=>{});
 const LOGIN_HASH="a6b0c7116dcdd04587b1cdedb3ba8211bfe6aff6de3c773212d23bc8e93c3d84";
 let S={insumos:[],fichas:[],cfg:{}};
@@ -464,7 +462,49 @@ function explodir(f,kgNecessario,acc){
 
 /* ================= sugestão de preços (Tangará da Serra) ================= */
 let SAMPLE;
-async function getSample(){if(SAMPLE===undefined){try{SAMPLE=await claude.use("sample")}catch(e){SAMPLE=null}}return SAMPLE}
+/* IA no app instalado: chama a API do Claude com a chave guardada só neste computador */
+function apiKey(){try{return localStorage.getItem("cmv_apikey")||""}catch(e){return""}}
+async function chamarClaude(prompt,opts={}){
+  const body={model:"claude-sonnet-5-5",max_tokens:8000,messages:[{role:"user",content:prompt}]};
+  if(opts.web)body.tools=[{type:"web_search_20250305",name:"web_search",max_uses:6,user_location:{type:"approximate",city:"Tangará da Serra",region:"Mato Grosso",country:"BR",timezone:"America/Cuiaba"}}];
+  let r;
+  try{r=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"content-type":"application/json","x-api-key":apiKey(),"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},body:JSON.stringify(body)})}
+  catch(e){throw {code:"rede",message:"Sem conexão com a internet ou com o Claude."}}
+  let j={};try{j=await r.json()}catch(e){}
+  if(!r.ok){const m=(j.error&&j.error.message)||("Erro "+r.status);
+    throw {code:r.status===401?"chave":r.status===429?"rate_limited":r.status===400&&/credit|balance/i.test(m)?"saldo":"api",message:m}}
+  return (j.content||[]).filter(c=>c.type==="text").map(c=>c.text).join("");
+}
+function extrairJSON(t){const a=t.indexOf("{"),b=t.lastIndexOf("}");if(a<0||b<0)throw new Error("O Claude não devolveu uma resposta válida. Tente de novo.");return JSON.parse(t.slice(a,b+1))}
+function msgErroIA(e){
+  if(e&&e.code==="chave")return"A chave da IA não foi aceita. Confira em Dados e backup.";
+  if(e&&e.code==="saldo")return"A conta da API do Claude está sem créditos. Adicione créditos em console.anthropic.com.";
+  if(e&&e.code==="rate_limited")return"Muitas consultas seguidas. Aguarde um minuto e tente de novo.";
+  return (e&&e.message)||"Falha ao consultar o Claude.";
+}
+async function getSample(){
+  if(NO_CLAUDE){
+    if(!apiKey())return null;
+    const shim=async(i)=>({text:await chamarClaude(typeof i==="string"?i:i.map(m=>m.content).join("\n"))});
+    shim.json=async(i,o={})=>{try{return extrairJSON(await chamarClaude(i,o))}catch(e){throw {code:e.code,message:msgErroIA(e)}}};
+    return shim;
+  }
+  if(SAMPLE===undefined){try{SAMPLE=await claude.use("sample")}catch(e){SAMPLE=null}}return SAMPLE}
+function precisaChaveIA(){
+  if(!NO_CLAUDE||apiKey())return false;
+  modal(`<h2>Ativar a inteligência artificial</h2>
+    <p>Para montar fichas por descrição e pesquisar preços de Tangará da Serra aqui no app do computador, ele precisa de uma <b>chave da API do Claude</b>.</p>
+    <ol class="small" style="padding-left:18px;display:grid;gap:4px;margin:0">
+      <li>Entre em <b>console.anthropic.com</b> e faça login com o seu e-mail.</li>
+      <li>Em <b>Billing</b>, adicione créditos. O uso é cobrado por consulta.</li>
+      <li>Em <b>API Keys</b>, clique em <b>Create Key</b> e copie a chave (começa com <code>sk-ant-</code>).</li>
+      <li>Cole aqui embaixo e clique em Salvar.</li></ol>
+    <label class="small" for="ak0"><b>Chave da API</b><input class="f" id="ak0" type="password" autocomplete="off" placeholder="sk-ant-..."></label>
+    <p class="small muted">A chave fica guardada só neste computador e nunca vai para o GitHub.</p>
+    <div class="actions"><button class="btn" data-close>Agora não</button><button class="btn pri" id="ak0ok">Salvar</button></div>`,
+  {onMount:(m,close)=>{$("#ak0ok",m).onclick=()=>{const v=$("#ak0",m).value.trim();if(!/^sk-ant-/.test(v)){toast("A chave deve começar com sk-ant-");return}try{localStorage.setItem("cmv_apikey",v)}catch(e){}close();toast("Chave salva. Pode usar a IA.")}}});
+  return true;
+}
 const PRICE_CONTEXT=`Você é comprador de um restaurante em Tangará da Serra, Mato Grosso (Brasil). Mês de referência: ${new Date().toLocaleDateString("pt-BR",{month:"long",year:"numeric"})}.
 Estime o preço de COMPRA praticado em Tangará da Serra/MT para cada item, como se encontra nos atacarejos e mercados da cidade (Atacadão, Atacado Modelo, Hipermercado Gotardo, açougues, peixarias e hortifrútis locais) e em distribuidoras de bebidas da região. Considere preços de Mato Grosso (frete do interior, carne bovina e pescados regionais como pirarucu, pacu e pintado costumam ser mais baratos que no Sudeste; hortifrúti e itens importados costumam ser mais caros).
 Use a embalagem informada quando houver; se não houver, use a embalagem mais comum de compra para restaurante.
@@ -473,10 +513,11 @@ Responda SOMENTE JSON no formato:
 preco_embalagem é o valor pago pela embalagem inteira em reais; faixa_min e faixa_max são o preço por unidade base (R$/kg, R$/l ou R$/un).`;
 async function sugerirPrecos(itens){
   const s=await getSample();
-  if(!s)throw new Error("A sugestão de preços não está disponível nesta visualização.");
+  if(!s)throw new Error(NO_CLAUDE?"Ative a IA em Dados e backup (chave da API do Claude).":"A sugestão de preços não está disponível nesta visualização.");
   const lista=itens.map(i=>`- ${i.nome} | embalagem: ${i.qtd?nf(i.qtd)+" "+i.un:"não informada"}${i.preco?" | preço atual cadastrado: R$ "+nf(i.preco,2):""}`).join("\n");
   let out;
-  try{out=await s.json(PRICE_CONTEXT+"\n\nItens:\n"+lista,{modelTier:"default"})}
+  const extra=NO_CLAUDE?"\nUse a busca na web para encontrar preços atuais em Tangará da Serra/MT (sites e encartes dos mercados, atacarejos e distribuidoras da cidade). Se não achar o item na cidade, use preços de Cuiabá ou de Mato Grosso e diga isso em obs. Em onde_comprar, cite a loja ou o site onde viu o preço.":"";
+  try{out=await s.json(PRICE_CONTEXT+extra+"\n\nItens:\n"+lista,NO_CLAUDE?{web:true}:{modelTier:"default"})}
   catch(e){
     if(e&&e.code==="not_granted")throw new Error("Permissão para consultar o Claude não foi concedida.");
     if(e&&e.code==="rate_limited")throw new Error("Muitas consultas seguidas. Aguarde um minuto e tente de novo.");
@@ -677,6 +718,7 @@ function editarInsumo(i,onSaved){
       $("#mi_g",m).href=googleLink($("#mi_nome",m).value)};
     m.addEventListener("input",calc);calc();
     $("#mi_sug",m).onclick=async()=>{
+      if(precisaChaveIA())return;
       const nome=$("#mi_nome",m).value.trim();if(!nome){toast("Digite o nome do insumo primeiro.");return}
       const b=$("#mi_sug",m);b.disabled=true;b.textContent="Pesquisando preço…";
       try{
@@ -685,7 +727,7 @@ function editarInsumo(i,onSaved){
         $("#mi_out",m).innerHTML=`<div class="sugg"><b>Sugestão: ${brl(s.preco_embalagem)} por ${nf(s.qtd_embalagem)} ${esc(s.unidade)}</b>
           <span class="small">Faixa em Tangará da Serra: ${brl(s.faixa_min)} a ${brl(s.faixa_max)} por ${esc(s.unidade)} · confiança ${esc(s.confianca)}</span>
           <span class="small muted">${esc(s.onde_comprar||"")}${s.obs?" · "+esc(s.obs):""}</span>
-          <span class="small muted">Estimativa do Claude, sem consulta a sites em tempo real. Confira na nota ou no encarte antes de usar.</span>
+          <span class="small muted">${NO_CLAUDE?"Pesquisa feita pelo Claude na internet. Confira na nota ou no encarte antes de usar.":"Estimativa do Claude, sem consulta a sites em tempo real. Confira na nota ou no encarte antes de usar."}</span>
           <div><button class="btn sm ai pri" id="mi_use">Usar este preço</button></div></div>`;
         $("#mi_use",m).onclick=()=>{$("#mi_preco",m).value=nf(s.preco_embalagem,2);$("#mi_qtd",m).value=nf(s.qtd_embalagem,3);if(["kg","l","un"].includes(s.unidade))$("#mi_un",m).value=s.unidade;m.dataset.sug="1";calc()};
       }catch(e){$("#mi_out",m).innerHTML=`<p class="err">${esc(e.message)}</p>`}
@@ -706,10 +748,11 @@ function editarInsumo(i,onSaved){
   }});
 }
 async function revisarPrecos(lista){
+  if(precisaChaveIA())return;
   if(!lista.length){toast("Nenhum insumo para revisar.");return}
   const LOTE=15;let fila=[...lista];const res=new Map();
   const close=modal(`<h2>Sugestão de preços · Tangará da Serra (MT)</h2>
-   <p class="small muted">Estimativas do Claude para o mercado de Tangará da Serra, sem consulta a sites em tempo real. Marque as que quer aplicar; confira valores importantes com notas, encartes ou o link do Google de cada item.</p>
+   <p class="small muted">${NO_CLAUDE?"Preços pesquisados pelo Claude na internet para Tangará da Serra.":"Estimativas do Claude para o mercado de Tangará da Serra, sem consulta a sites em tempo real."} Marque as que quer aplicar; confira valores importantes com notas, encartes ou o link do Google de cada item.</p>
    <div class="small" id="rv_st">${lista.length} item(ns). Consultando em lotes de ${LOTE}…</div>
    <div class="tablewrap"><table><thead><tr><th><input type="checkbox" id="rv_all" aria-label="Marcar todos"></th><th>Insumo</th><th class="n">Atual</th><th class="n">Sugerido</th><th class="n">Dif.</th><th>Faixa (R$/base)</th><th>Onde</th><th></th></tr></thead><tbody id="rv_tb"></tbody></table></div>
    <div class="actions"><button class="btn" data-close>Fechar</button><button class="btn pri" id="rv_ok" disabled>Aplicar marcados</button></div>`,{wide:true});
@@ -772,6 +815,7 @@ R.fichas=el=>{
 /* ---------- criar ficha a partir de uma descrição por extenso ---------- */
 let iaRascunho="";
 function criarFichaIA(){
+  if(precisaChaveIA())return;
   const cats=[...new Set([...S.cfg.categorias,...S.fichas.map(x=>x.cat)])];
   modal(`<h2>Descrever produto novo</h2>
    <p class="small muted">Escreva do seu jeito o que quer servir: o prato, os ingredientes e as quantidades que você já sabe, para quantas pessoas, o tamanho da porção e o preço de venda se já tiver ideia. O que faltar, o Claude completa. Ele usa os insumos cadastrados e sugere preço de Tangará da Serra para os que forem novos.</p>
@@ -782,7 +826,7 @@ function criarFichaIA(){
     const ta=$("#ia_txt",m);ta.oninput=()=>iaRascunho=ta.value;
     $("#ia_go",m).onclick=async()=>{
       const txt=ta.value.trim();if(txt.length<10){toast("Descreva o produto com um pouco mais de detalhe.");return}
-      const s=await getSample();if(!s){$("#ia_out",m).innerHTML=`<p class="err">A montagem automática não está disponível nesta visualização.</p>`;return}
+      const s=await getSample();if(!s){$("#ia_out",m).innerHTML=`<p class="err">${NO_CLAUDE?"Ative a IA em Dados e backup (chave da API do Claude).":"A montagem automática não está disponível nesta visualização."}</p>`;return}
       const b=$("#ia_go",m);b.disabled=true;b.textContent="Montando a ficha…";$("#ia_out",m).innerHTML=`<p class="small muted">Isso leva alguns segundos.</p>`;
       const prompt=`Você é chef e técnico de custos de um restaurante em Tangará da Serra, Mato Grosso (Brasil). Monte UMA ficha técnica a partir da descrição do dono do restaurante.
 
@@ -1067,10 +1111,11 @@ R.bebidas=el=>{
   $("#tb",el).addEventListener("click",e=>{const b=e.target.closest("[data-rm]");if(!b)return;const it=S.cfg.bebidas[+b.dataset.rm];confirmar(`Remover <b>${esc(it.nome)}</b>?`,()=>{S.cfg.bebidas.splice(+b.dataset.rm,1);save("cfg");draw();renderNav()})});
   $("#addB",el).onclick=()=>{S.cfg.bebidas.unshift({nome:"Nova bebida",custo:0,preco:0});save("cfg");draw();renderNav();$("#tb input",el).select()};
   $("#sugB",el).onclick=async()=>{
+    if(precisaChaveIA())return;
     const bt=$("#sugB",el);bt.disabled=true;bt.textContent="Consultando…";
     try{const lista=S.cfg.bebidas.slice(0,40).map(b=>({nome:b.nome,qtd:1,un:"un",preco:b.custo}));const out=[];
       for(let i=0;i<lista.length;i+=20)out.push(...await sugerirPrecos(lista.slice(i,i+20)));
-      modal(`<h2>Custo de compra sugerido · Tangará da Serra</h2><p class="small muted">Estimativas do Claude, sem consulta a sites em tempo real. Marque o que quer aplicar.</p>
+      modal(`<h2>Custo de compra sugerido · Tangará da Serra</h2><p class="small muted">${NO_CLAUDE?"Preços pesquisados pelo Claude na internet.":"Estimativas do Claude, sem consulta a sites em tempo real."} Marque o que quer aplicar.</p>
       <div class="tablewrap"><table><thead><tr><th></th><th>Bebida</th><th class="n">Atual</th><th class="n">Sugerido</th><th>Onde</th></tr></thead><tbody>
       ${S.cfg.bebidas.slice(0,40).map((b,ix)=>{const s=out.find(o=>norm(o.nome)===norm(b.nome))||out[ix];const v=s?s.preco_embalagem/(s.qtd_embalagem||1):NaN;
         return`<tr><td>${isFinite(v)?`<input type="checkbox" class="bc" data-ix="${ix}" data-v="${v}" aria-label="Aplicar">`:""}</td><td>${esc(b.nome)}</td><td class="n">${brl(b.custo)}</td><td class="n">${brl(v)}</td><td class="small">${esc(s?.onde_comprar||"")}</td></tr>`}).join("")}</tbody></table></div>
@@ -1213,7 +1258,15 @@ R.dados=el=>{
      <div class="tools"><button class="btn" id="exJ">Backup completo (.json)</button><button class="btn" id="exI">Insumos (.csv)</button><button class="btn" id="exF">Fichas (.csv)</button></div></div>
    <div class="card grid"><h3>Restaurar</h3><p class="small muted">Carregue um backup .json salvo antes, ou volte aos dados originais da planilha (substitui tudo).</p>
      <div class="tools"><label class="btn" for="imJ">Carregar backup…</label><input type="file" id="imJ" accept=".json,application/json" class="hidden">${NO_CLAUDE?"":`<button class="btn danger" id="reset">Reimportar planilha original</button>`}</div></div>
-  </div>`;
+  </div>
+  ${NO_CLAUDE?`<div class="card grid" style="margin-top:18px"><h3>Inteligência artificial (Claude)</h3>
+    <p class="small muted">Usada em "Descrever produto novo" e "Sugerir preços". Neste computador, ela funciona com uma chave da API do Claude (console.anthropic.com), cobrada por uso. A chave fica guardada só aqui.</p>
+    <p class="small"><b>Situação:</b> ${apiKey()?`<span class="pill good">Ativada</span> chave terminando em …${esc(apiKey().slice(-4))}`:`<span class="pill warn">Desativada</span>`}</p>
+    <div class="tools"><button class="btn pri" id="akSet">${apiKey()?"Trocar chave":"Ativar com minha chave"}</button>${apiKey()?`<button class="btn" id="akTest">Testar</button><button class="btn danger" id="akDel">Remover chave</button>`:""}</div></div>`:""}`;
+  if($("#akSet",el))$("#akSet",el).onclick=()=>{try{localStorage.removeItem("cmv_apikey")}catch(e){}precisaChaveIA();const t=setInterval(()=>{if(!$("#modalRoot").innerHTML){clearInterval(t);render()}},400)};
+  if($("#akDel",el))$("#akDel",el).onclick=()=>confirmar("Remover a chave da IA deste computador?",()=>{try{localStorage.removeItem("cmv_apikey")}catch(e){}render()});
+  if($("#akTest",el))$("#akTest",el).onclick=async()=>{const b=$("#akTest",el);b.disabled=true;b.textContent="Testando…";
+    try{const t=await chamarClaude("Responda só: ok");toast(/ok/i.test(t)?"A IA respondeu. Está tudo certo.":"A IA respondeu: "+t.slice(0,60))}catch(e){toast(msgErroIA(e),6000)}finally{b.disabled=false;b.textContent="Testar"}};
   const dl=async(filename,data)=>{if(NO_CLAUDE){const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([data],{type:"application/octet-stream"}));a.download=filename;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1000);return}
     let d=null;try{d=await claude.use("downloads")}catch(e){}
     if(d){try{await d.save({filename,data});return}catch(e){if(e&&e.code==="declined")return}}
